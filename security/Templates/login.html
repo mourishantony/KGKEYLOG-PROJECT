@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet">
+    <style>
+         {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        /* Body Styling */
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #cceafb;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+        
+        /* Container for the form */
+        form {
+          background-color: #fffffff1,;
+          padding: 30px;
+          border-radius: 8px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          width: 300px;
+          text-align: center;
+        }
+        
+        /* Heading Styling */
+        h1 {
+          color: #333;
+          font-size: 24px;
+          margin-bottom: 50px;
+          position: absolute;
+          top: 200px;
+        }
+        
+        /* Label Styling */
+        label {
+          display: block;
+          font-size: 14px;
+          color: #555;
+          margin-bottom: 5px;
+          text-align: left;
+        }
+        
+        /* Input Fields Styling */
+        input[type="text"], input[type="password"] {
+          width: 100%;
+          padding: 10px;
+          margin: 8px 0;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 16px;
+          color: #333;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+          border-color: #6c7ae0;
+          outline: none;
+        }
+        
+        /* Button Styling */
+        button {
+          width: 100%;
+          padding: 12px;
+          background-color: #6c7ae0;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+        
+        button:hover {
+          background-color: #5560d8;
+        }
+        
+        /* Styling for the form on small screens */
+        @media (max-width: 400px) {
+          form {
+              width: 80%;
+          }
+        }
+        </style>
+</head>
+<body>
+    <h1>Login</h1>
+
+    <form method="post">
+         
+        {% csrf_token %}
+        
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Login</button>
+    </form>
+
+
+    
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    
+</body>
+</html>
