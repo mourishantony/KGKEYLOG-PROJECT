@@ -12,12 +12,18 @@
                 <th>Staff Name</th>
                 <th>Lab Name</th>
                 <th>Time Taken</th>
+                <th>Status</th>
+                <th>Time Returned</th>
             </tr>
             {% for log in logs %}
             <tr>
                 <td>{{ log.staff_name }}</td>
                 <td>{{ log.lab_name }}</td>
                 <td>{{ log.taken_at }}</td>
+                <td style="color: {% if log.status == 'taken' %}red{% else %}green{% endif %}">
+                    {{ log.status | capitalize }}
+                </td>
+                <td>{{ log.returned_at if log.status == 'returned' else 'Still Taken' }}</td>
             </tr>
             {% endfor %}
         </table>

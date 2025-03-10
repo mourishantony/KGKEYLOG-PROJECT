@@ -1,17 +1,17 @@
 from pymongo import MongoClient
 
-# Connect to MongoDB
 client = MongoClient("mongodb://localhost:27017/")
 
-# Database 1 (Users)
+# Database for Users
 db1 = client["user_database"]
 users_collection = db1["users"]
 
-# Database 2 (RFID and Logs)
+# Database for RFID logs
 db2 = client["key_log_database"]
 staff_collection = db2["staff"]
 lab_collection = db2["labs"]
-logs_collection = db2["logs"]
+temp_logs = db2["temp_logs"]  # Temporary table
+permanent_logs = db2["permanent_logs"]  # Permanent table
 
 # Insert sample users
 users_collection.insert_many([
@@ -22,7 +22,7 @@ users_collection.insert_many([
 # Insert sample staff RFIDs
 staff_collection.insert_many([
     {"staff_rfid": "201", "name": "Mourish"},
-    {"staff_rfid": "123", "name": "Joe "}
+    {"staff_rfid": "123", "name": "Joe"}
 ])
 
 # Insert sample lab RFIDs
