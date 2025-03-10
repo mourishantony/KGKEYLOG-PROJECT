@@ -19,10 +19,10 @@ users_collection.insert_many([
     {"username": "user1", "password": "pass123"}
 ])
 
-# Insert sample staff RFIDs
+# Insert sample staff RFIDs with emails
 staff_collection.insert_many([
-    {"staff_rfid": "201", "name": "Mourish"},
-    {"staff_rfid": "123", "name": "Joe"}
+    {"staff_rfid": "201", "name": "Mourish", "email": "24uad201mourish@kgkite.ac.in"},
+    {"staff_rfid": "123", "name": "Joe", "email": "joedanielajd@gmail.com"}
 ])
 
 # Insert sample lab RFIDs
