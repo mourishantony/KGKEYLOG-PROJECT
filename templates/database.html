@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Database</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Key Log Database</h2>
+        <table border="1">
+            <tr>
+                <th>Staff Name</th>
+                <th>Lab Name</th>
+                <th>Time Taken</th>
+            </tr>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.staff_name }}</td>
+                <td>{{ log.lab_name }}</td>
+                <td>{{ log.taken_at }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <button onclick="window.location.href='/home'" class="nav-button">Back to Home</button>
+    </div>
+</body>
+</html>

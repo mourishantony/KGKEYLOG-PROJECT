@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h2>RFID Key Log</h2>
+        <form method="post">
+            <input type="text" name="staff_rfid" placeholder="Enter Staff RFID" required>
+            <input type="text" name="lab_rfid" placeholder="Enter Lab RFID" required>
+            <button type="submit">Submit</button>
+        </form>
+        <p class="message">{{ message }}</p>
+        <button id="database-button" class="nav-button" onclick="window.location.href='/database'">Go to Database</button>
+    </div>
+</body>
+</html>
