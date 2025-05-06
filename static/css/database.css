@@ -1,0 +1,191 @@
+/* Background Styling */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header Styling */
+        .header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .header img {
+            width: 50px;
+            margin-right: 10px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 22px;
+            margin: 0;
+        }
+
+        .header p {
+            color: #ffcc00;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Glassmorphism Container */
+        .container {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+            width: 80%;
+            max-width: 1200px;
+            margin-top: 100px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container h2 {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        /* Scrollable Table with Fixed Headers */
+        .table-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 55vh;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Table Header */
+        thead {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 500;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 18px;
+        }
+
+        th {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        td:nth-child(4) {
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        .pagination, .button-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* Filter Section Styling */
+.filter-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Label Styling */
+.filter-container label {
+    font-size: 18px;
+    font-weight: 500;
+    color: white;
+    margin-right: 5px;
+}
+
+/* Dropdown Styling */
+.filter-container select {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    outline: none;
+    transition: 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+/* Dropdown Hover & Focus */
+.filter-container select:hover,
+.filter-container select:focus {
+    background: rgba(255, 255, 255, 0.5);
+    color: black;
+    transform: scale(1.05);
+}
+
+
+        button:hover {
+            background: linear-gradient(to right, #ff4b2b, #ff416c);
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+        }
+
+    

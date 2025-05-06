@@ -1,10 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>KG Keylog - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    
 </head>
 <body>
+
+    <!-- Header with Logo -->
+    <div class="header">
+        <img src="{{ url_for('static', filename='KGLOGO.jpg') }}" alt="KGiSL Logo" class="logo">
+        <div class="header-text">
+            <h1>KGiSL Institute of Technology</h1>
+            <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
+        </div>
+    </div>
+
+    <!-- Title -->
+    <div class="title">
+        KG Keylog
+    </div>
+
+    <!-- Login Box -->
     <div class="container">
         <h2>Login</h2>
         <form method="post">
@@ -18,5 +35,9 @@
             {% endif %}
         {% endwith %}
     </div>
+    <div class="footer">
+        © 2025 IPS Tech Community. All Rights Reserved.
+    </div>
+
 </body>
 </html>

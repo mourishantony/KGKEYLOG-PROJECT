@@ -1,20 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Home</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <title>RFID Key Log</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <!-- <script src="{{ url_for('static', filename='script.js') }}" defer></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    
 </head>
 <body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='KGLOGO.jpg') }}" alt="Logo">
+        <div>
+            <h1>KGiSL Institute of Technology</h1>
+            <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
+        </div>
+        <a class="lg-out" href="{{ url_for('login') }}">Logout</a>
+    </div>
+
     <div class="container">
-        <h2>RFID Key Log</h2>
-        <form method="post">
-            <input type="text" name="staff_rfid" placeholder="Enter Staff RFID" required>
-            <input type="text" name="lab_rfid" placeholder="Enter Lab RFID" required>
+        <center><h2>RFID Key Log</h2></center>
+        
+        <form id="rfid-form">
+            <label for="security" style="color: white;">Security RFID:</label>
+            <input type="text" id="security_rfid" placeholder="Scan Security RFID">
+
+            <label for="staff"  style="color: white;">Faculty RFID:</label>
+            <input type="text" id="staff" oninput="fetchStaffName()" placeholder=" Scan Staff RFID">
+
+            <label for="rfid"  style="color: white;">Key RFID:</label>
+            <input type="text" id="rfid" placeholder="Scan Key RFID">
+            <p id="staff-name"></p>
+
             <button type="submit">Submit</button>
         </form>
+
         <p class="message">{{ message }}</p>
-        <button id="database-button" class="nav-button" onclick="window.location.href='/database'">Go to Database</button>
+        <button id="database-button" onclick="window.location.href='/database'">Go to Database</button>
     </div>
+
+    <div class="footer">
+        © 2025 IPS Tech Community. All Rights Reserved.
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("rfid-form");
+            const staffInput = document.getElementById("staff");
+            const securityInput = document.getElementById("security_rfid");
+            const labInput = document.getElementById("rfid");
+            const staffNameDisplay = document.getElementById("staff-name");
+    
+            // Prevent form submission on Enter key press in input fields
+            form.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                }
+            });
+    
+            // Fetch staff name based on RFID input
+            staffInput.addEventListener("input", async function () {
+                let rfid = staffInput.value.trim();
+    
+                if (rfid.length > 3) {  // Ensure valid input length
+                    try {
+                        let response = await fetch("/get_staff_name", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ rfid: rfid })
+                        });
+    
+                        let data = await response.json();
+    
+                        if (response.ok) {
+                            staffNameDisplay.innerText = `Staff Name: ${data.name}`;
+                        } else {
+                            throw new Error(data.error || "Failed to fetch staff name");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching staff name:", error);
+                        staffNameDisplay.innerText = " ";
+                    }
+                } else {
+                    staffNameDisplay.innerText = "";
+                }
+            });
+    
+            // Handle form submission
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault(); // Prevent default form submission
+    
+                let security_rfid = securityInput.value.trim();
+                let staff_rfid = staffInput.value.trim();
+                let lab_rfid = labInput.value.trim();
+    
+                if (!security_rfid || !staff_rfid || !lab_rfid) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "❌ Please enter all RFID details!"
+                    });
+                    return;
+                }
+    
+                try {
+                    let response = await fetch("/home", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ security: security_rfid, staff: staff_rfid, rfid: lab_rfid })
+                    });
+    
+                    let data = await response.json();
+    
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text: data.message
+                        });
+                        form.reset(); // Clear form after successful submission
+                        staffNameDisplay.innerText = ""; // Clear staff name display
+                    } else {
+                        throw new Error(data.error || "Submission failed");
+                    }
+                } catch (error) {
+                    console.error("Error submitting RFID:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Submission Failed",
+                        text: "❌ Something went wrong, please try again!"
+                    });
+                }
+            });
+        });
+    </script>
+    
 </body>
 </html>

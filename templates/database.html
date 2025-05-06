@@ -1,33 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Database</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>RFID Key Log</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/database.css') }}">
+    <!-- <script src="{{ url_for('static', filename='script.js') }}" defer></script> -->
+    <script>
+    function filterTable() {
+        let securityFilter = document.getElementById("securityFilter").value.toLowerCase();
+        let staffFilter = document.getElementById("staffFilter").value.toLowerCase();
+        let keyFilter = document.getElementById("keyFilter").value.toLowerCase();
+        let statusFilter = document.getElementById("statusFilter").value.toLowerCase();
+    
+        let table = document.getElementById("logTable");
+        let rows = table.getElementsByTagName("tr");
+    
+        for (let i = 1; i < rows.length; i++) {
+            let cells = rows[i].getElementsByTagName("td");
+            if (cells.length > 0) {
+                let security = cells[0].textContent.toLowerCase(); // Security Name (index 0)
+                let staff = cells[2].textContent.toLowerCase(); // Staff Name (index 2)
+                let key = cells[1].textContent.toLowerCase(); // Lab Name (Key) (index 1)
+                let status = cells[4].textContent.toLowerCase(); // Status (index 4)
+    
+                if ((security.includes(securityFilter) || securityFilter === "all") &&
+                    (staff.includes(staffFilter) || staffFilter === "all") &&
+                    (key.includes(keyFilter) || keyFilter === "all") &&
+                    (status.includes(statusFilter) || statusFilter === "all")) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+    
 </head>
 <body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='KGLOGO.jpg') }}" alt="Logo">
+        <div>
+            <h1>KGiSL Institute of Technology</h1>
+            <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
+        </div>
+    </div>
+
     <div class="container">
         <h2>Key Log Database</h2>
-        <table border="1">
-            <tr>
-                <th>Staff Name</th>
-                <th>Lab Name</th>
-                <th>Time Taken</th>
-                <th>Status</th>
-                <th>Time Returned</th>
-            </tr>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.staff_name }}</td>
-                <td>{{ log.lab_name }}</td>
-                <td>{{ log.taken_at }}</td>
-                <td style="color: {% if log.status == 'taken' %}red{% else %}green{% endif %}">
-                    {{ log.status | capitalize }}
-                </td>
-                <td>{{ log.returned_at if log.status == 'returned' else 'Still Taken' }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <button onclick="window.location.href='/home'" class="nav-button">Back to Home</button>
+        <div class="filter-container">
+            <label for="securityFilter">Security:</label>
+            <select id="securityFilter" onchange="filterTable()">
+                <option value="all">All</option>
+                <option value="John">John</option>
+                <option value="michael">Michael</option>
+            </select>
+        
+            <label for="staffFilter">Staff:</label>
+            <select id="staffFilter" onchange="filterTable()">
+                <option value="all">All</option>
+                <option value="mourish">Mourish</option>
+                <option value="joe Daniel">Joe Daniel;</option>
+                <option value="john">John</option>
+            </select>
+        
+            <label for="keyFilter">Key:</label>
+            <select id="keyFilter" onchange="filterTable()">
+                <option value="all">All</option>
+                <option value="210 lab">210 Lab</option>
+                <option value="computer lab">Computer Lab</option>
+            </select>
+            <label for="statusFilter">Status:</label>
+            <select id="statusFilter" onchange="filterTable()">
+                <option value="all">All</option>
+                <option value="taken">Taken</option>
+                <option value="returned">Returned</option>
+            </select>
+        </div>
+    
+        <div class="table-container">
+            <table id="logTable">
+                <thead>
+                    <tr>
+                        <th>Security Name</th>
+                        <th>Lab Name</th>
+                        <th>Staff Name</th>
+                        <th>Time Taken</th>
+                        <th>Status</th>
+                        <th>Time Returned</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.security_name }}</td>
+                        <td>{{ log.lab_name }}</td>
+                        <td>{{ log.staff_name }}</td>
+                        <td>{{ log.taken_at }}</td>
+                        <td style="color: {% if log.status == 'taken' %}red{% else %}limegreen{% endif %}">
+                            {{ log.status | capitalize }}
+                        </td>
+                        <td>{{ log.returned_at if log.status == 'returned' else 'Not Returned Yet' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            {% if page > 1 %}
+                <button onclick="window.location.href='/database?page={{ page - 1 }}'">Previous Page</button>
+            {% endif %}
+            
+            {% if page < total_pages %}
+                <button onclick="window.location.href='/database?page={{ page + 1 }}'">Next Page</button>
+            {% endif %}
+        </div>
+
+        <div class="button-container">
+            <button id="database-button" onclick="window.location.href='/home'">Back to Home</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2025 IPS Tech Community. All Rights Reserved.
     </div>
 </body>
 </html>
