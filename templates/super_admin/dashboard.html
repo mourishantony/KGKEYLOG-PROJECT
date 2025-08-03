@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - Lab Key Management</title>
+    <style>
+        /* ========== GLOBAL STYLES ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* ========== HEADER STYLES ========== */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 3px solid #06beb6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #06beb6;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #bdc3c7;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+        
+        /* ========== MAIN CONTAINER ========== */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: calc(100vh - 200px);
+            position: relative;
+            overflow: visible;
+        }
+        
+        /* ========== USER INFO BAR ========== */
+        .user-info {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(6, 190, 182, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .user-welcome {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-welcome .crown-icon {
+            font-size: 1.8rem;
+            color: #f39c12;
+            filter: drop-shadow(0 0 8px rgba(243, 156, 18, 0.4));
+        }
+        
+        .user-welcome .welcome-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #06beb6;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .user-welcome .role-badge {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 10px rgba(6, 190, 182, 0.3);
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .home-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        /* ========== FLASH MESSAGES ========== */
+        .flash-message {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        
+        .flash-message.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border-left-color: #27ae60;
+        }
+        
+        .flash-message.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-left-color: #c0392b;
+        }
+        
+        .flash-message.info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border-left-color: #2980b9;
+        }
+        
+        /* ========== SECTION HEADINGS ========== */
+        .section-heading {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #06beb6;
+            text-align: center;
+            margin: 40px 0 30px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .section-heading::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+        
+        /* ========== DASHBOARD OVERVIEW CARDS ========== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0 50px 0;
+        }
+        
+        .dashboard-card {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px 25px;
+            text-align: center;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: #06beb6;
+            box-shadow: 0 15px 40px rgba(6, 190, 182, 0.2);
+        }
+        
+        .dashboard-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #06beb6;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+        
+        .dashboard-card .count {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .dashboard-card .description {
+            font-size: 1rem;
+            color: #bdc3c7;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+        
+        /* ========== MANAGEMENT TOOLS GRID ========== */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0 60px 0;
+        }
+        
+        .nav-card {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            border-radius: 12px;
+            padding: 25px 20px;
+            text-align: center;
+            border: 1px solid rgba(6, 190, 182, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(6, 190, 182, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .nav-card:hover::before {
+            opacity: 1;
+        }
+        
+        .nav-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            border-color: #06beb6;
+            box-shadow: 0 12px 35px rgba(6, 190, 182, 0.25);
+        }
+        
+        .nav-card a {
+            color: white;
+            text-decoration: none;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .nav-card a h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #06beb6;
+            margin: 0 0 12px 0;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-card a p {
+            font-size: 0.95rem;
+            color: #bdc3c7;
+            margin: 0;
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-card:hover a h4 {
+            color: #4ecdc4;
+            text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+        }
+        
+        .nav-card:hover a p {
+            color: #ecf0f1;
+        }
+        
+        /* ========== SPECIAL HIGHLIGHT CARDS ========== */
+        .nav-card.highlight {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            border-color: rgba(243, 156, 18, 0.5);
+        }
+        
+        .nav-card.highlight:hover {
+            box-shadow: 0 12px 35px rgba(243, 156, 18, 0.3);
+        }
+        
+        .nav-card.critical {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-color: rgba(231, 76, 60, 0.5);
+        }
+        
+        .nav-card.critical:hover {
+            box-shadow: 0 12px 35px rgba(231, 76, 60, 0.3);
+        }
+        
+        /* ========== FOOTER ========== */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: 60px;
+            border-top: 3px solid #06beb6;
+            color: #bdc3c7;
+            font-size: 0.95rem;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 1200px) {
+            .dashboard-container {
+                max-width: 100%;
+                padding: 20px 15px;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+                padding: 20px 15px;
+            }
+            
+            .user-welcome {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .user-actions {
+                justify-content: center;
+                width: 100%;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            
+            .dashboard-container {
+                padding: 15px 10px;
+            }
+            
+            .section-heading {
+                font-size: 1.6rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .dashboard-card .count {
+                font-size: 2.5rem;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* ========== LOADING ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dashboard-card,
+        .nav-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+        .dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+        .dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+        .dashboard-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        .nav-card:nth-child(1) { animation-delay: 0.5s; }
+        .nav-card:nth-child(2) { animation-delay: 0.6s; }
+        .nav-card:nth-child(3) { animation-delay: 0.7s; }
+        .nav-card:nth-child(4) { animation-delay: 0.8s; }
+        .nav-card:nth-child(5) { animation-delay: 0.9s; }
+        .nav-card:nth-child(6) { animation-delay: 1.0s; }
+        .nav-card:nth-child(7) { animation-delay: 1.1s; }
+        .nav-card:nth-child(8) { animation-delay: 1.2s; }
+        
+        /* ========== SCROLL ENHANCEMENTS ========== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #2c3e50;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #4ecdc4 0%, #06beb6 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👑 Super Admin Dashboard</h1>
+        <p>KG Institute of Technology - Lab Key Management System</p>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="user-info">
+            <div class="user-welcome">
+                <span class="crown-icon">👑</span>
+                <div>
+                    <div class="welcome-text">Welcome, {{ user.username }}</div>
+                    <span class="role-badge">Super Administrator</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <a href="{{ url_for('home') }}" class="home-btn">🏠 Home</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h2 class="section-heading">📊 System Overview</h2>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3>👥 Staff Members</h3>
+                <div class="count">{{ staff_count }}</div>
+                <div class="description">Registered Staff with RFID Access</div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>🏛️ Laboratories</h3>
+                <div class="count">{{ lab_count }}</div>
+                <div class="description">Active Laboratory Rooms</div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>🛡️ Security Personnel</h3>
+                <div class="count">{{ security_count }}</div>
+                <div class="description">Authorized Security Officers</div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>👤 System Users</h3>
+                <div class="count">{{ user_count }}</div>
+                <div class="description">Administrative User Accounts</div>
+            </div>
+        </div>
+
+        <h2 class="section-heading">🔧 Management Tools</h2>
+        
+        <div class="nav-grid">
+            <div class="nav-card">
+                <a href="{{ url_for('manage_staff') }}">
+                    <h4>👥 Manage Staff</h4>
+                    <p>Add, edit, delete staff RFID credentials and maintain staff database</p>
+                </a>
+            </div>
+            
+            <div class="nav-card">
+                <a href="{{ url_for('manage_labs') }}">
+                    <h4>🏛️ Manage Laboratories</h4>
+                    <p>Configure laboratory RFID access and room information</p>
+                </a>
+            </div>
+            
+            <div class="nav-card">
+                <a href="{{ url_for('manage_security') }}">
+                    <h4>🛡️ Manage Security</h4>
+                    <p>Administer security personnel RFID and shift management</p>
+                </a>
+            </div>
+            
+            <div class="nav-card">
+                <a href="{{ url_for('manage_users') }}">
+                    <h4>👤 System Users</h4>
+                    <p>Control administrative user accounts and access permissions</p>
+                </a>
+            </div>
+            
+            <div class="nav-card highlight">
+                <a href="{{ url_for('manage_roles') }}">
+                    <h4>🎭 Role Management</h4>
+                    <p>Dynamic role configuration and permission management</p>
+                </a>
+            </div>
+            
+            <div class="nav-card">
+                <a href="{{ url_for('manage_departments') }}">
+                    <h4>🏢 Departments</h4>
+                    <p>Department setup and HOD assignment configuration</p>
+                </a>
+            </div>
+            
+            <div class="nav-card critical">
+                <a href="{{ url_for('manage_email_settings') }}">
+                    <h4>📧 Email Settings</h4>
+                    <p>Configure escalation emails and notification templates</p>
+                </a>
+            </div>
+            
+            <div class="nav-card">
+                <a href="{{ url_for('database') }}">
+                    <h4>📊 Activity Database</h4>
+                    <p>View comprehensive system activity logs and analytics</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 Lab Key Management System | Super Admin Panel | KG Institute of Technology
+    </div>
+</body>
+</html>

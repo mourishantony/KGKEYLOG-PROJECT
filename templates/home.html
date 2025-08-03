@@ -18,6 +18,13 @@
         <a href="{{ url_for('logout') }}" class="lg-out">
         👤 {{ user.username }} | Logout
         </a>
+        <!-- Add this to your navigation section -->
+        {% if user.is_super_admin() %}
+            <a href="{{ url_for('super_admin_dashboard') }}" class="super-admin-link">
+                👑 Super Admin Panel
+            </a>
+        {% endif %}
+
     </div>
 
     <div class="container">

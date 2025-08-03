@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Security - Super Admin</title>
+    <style>
+        /* ========== GLOBAL STYLES ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* ========== HEADER STYLES ========== */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 3px solid #06beb6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #06beb6;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: #bdc3c7;
+            font-weight: 300;
+        }
+        
+        /* ========== MANAGEMENT CONTAINER ========== */
+        .management-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* ========== NAVIGATION ========== */
+        .back-nav {
+            margin-bottom: 25px;
+        }
+        
+        .back-nav a {
+            color: #06beb6;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-nav a:hover {
+            color: #4ecdc4;
+            transform: translateX(-5px);
+        }
+        
+        /* ========== FLASH MESSAGES ========== */
+        .flash-message {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        
+        .flash-message.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border-left-color: #27ae60;
+        }
+        
+        .flash-message.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-left-color: #c0392b;
+        }
+        
+        .flash-message.info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border-left-color: #2980b9;
+        }
+        
+        /* ========== NEW CREDENTIALS DISPLAY ========== */
+        .credentials-display {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            color: white;
+        }
+        
+        .credentials-display h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .credentials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .credential-card {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* ========== MIGRATION RESULTS ========== */
+        .migration-results {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            color: white;
+        }
+        
+        /* ========== BULK ACTION SECTION ========== */
+        .bulk-actions {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        /* ========== FORM SECTIONS ========== */
+        .form-section, .list-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-section h2, .list-section h2 {
+            color: #06beb6;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ========== FORM STYLES ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .form-grid input, .form-grid select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-grid input:focus, .form-grid select:focus {
+            outline: none;
+            border-color: #06beb6;
+            box-shadow: 0 0 15px rgba(6, 190, 182, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .form-grid input::placeholder {
+            color: #bdc3c7;
+        }
+        
+        .form-grid select option {
+            background: #34495e;
+            color: white;
+        }
+        
+        /* ========== USERNAME PREVIEW ========== */
+        .username-preview {
+            background: rgba(6, 190, 182, 0.1);
+            border: 1px solid rgba(6, 190, 182, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+            color: #06beb6;
+            font-size: 0.95rem;
+        }
+        
+        .username-preview code {
+            background: rgba(6, 190, 182, 0.2);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        /* ========== BUTTON STYLES ========== */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(6, 190, 182, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+        }
+        
+        /* ========== TABLE STYLES ========== */
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(6, 190, 182, 0.2);
+            color: white;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        tr:hover {
+            background: rgba(6, 190, 182, 0.1);
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+        
+        /* ========== SHIFT BADGES ========== */
+        .shift-badge {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #2c3e50;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* ========== LOGIN STATUS ========== */
+        .login-status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .login-enabled {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+        
+        .login-disabled {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        /* ========== FOOTER ========== */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: 50px;
+            border-top: 3px solid #06beb6;
+            color: #bdc3c7;
+            font-size: 0.95rem;
+        }
+        
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 768px) {
+            .management-container {
+                padding: 20px 15px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .credentials-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-section, .list-section {
+                padding: 20px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-section, .list-section, .credentials-display, .bulk-actions {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .form-section {
+            animation-delay: 0.1s;
+        }
+        
+        .list-section {
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Security Personnel Management</h1>
+        <p>Super Admin Panel - RFID Management with Auto Login Creation</p>
+    </div>
+
+    <div class="management-container">
+        <div class="back-nav">
+            <a href="{{ url_for('super_admin_dashboard') }}">← Back to Dashboard</a>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- New Security Credentials Display -->
+        {% if session.get('new_security_credentials') %}
+        <div class="credentials-display">
+            <h3>🎉 New Security Login Credentials Created!</h3>
+            <p style="margin-bottom: 15px;">Share these credentials with the respective security personnel:</p>
+            
+            <div class="credentials-grid">
+                {% for cred in session.get('new_security_credentials') %}
+                <div class="credential-card">
+                    <strong>{{ cred.name }}</strong> ({{ cred.rfid }})<br>
+                    <strong>Username:</strong> <code>{{ cred.username }}</code><br>
+                    <strong>Password:</strong> <code>{{ cred.password }}</code>
+                </div>
+                {% endfor %}
+            </div>
+            {% set _ = session.pop('new_security_credentials', None) %}
+        </div>
+        {% endif %}
+
+        <!-- Migration Results Display -->
+        {% if session.get('migration_results') %}
+        <div class="migration-results">
+            <h3>🔄 Username Migration Complete!</h3>
+            <p style="margin-bottom: 15px;">Updated usernames for existing security personnel:</p>
+            
+            <div class="credentials-grid">
+                {% for result in session.get('migration_results') %}
+                <div class="credential-card">
+                    <strong>{{ result.name }}</strong><br>
+                    <strong>Old:</strong> <code>{{ result.old_username }}</code><br>
+                    <strong>New:</strong> <code>{{ result.new_username }}</code>
+                </div>
+                {% endfor %}
+            </div>
+            {% set _ = session.pop('migration_results', None) %}
+        </div>
+        {% endif %}
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions">
+            <h3 style="color: white; margin-bottom: 15px;">🔧 Bulk Actions</h3>
+            <form method="post" action="{{ url_for('create_security_logins') }}" style="display: inline; margin-right: 10px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-warning" onclick="return confirm('Create login accounts for all security personnel without accounts?')">
+                    🔑 Create Missing Login Accounts
+                </button>
+            </form>
+            
+            {% if current_user.is_super_admin() %}
+            <form method="post" action="{{ url_for('migrate_security_usernames') }}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-warning" onclick="return confirm('Migrate all security personnel to new memorable username format?')">
+                    🔄 Migrate to Memorable Usernames
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- Add Security Form -->
+        <div class="form-section">
+            <h2>➕ Add New Security Personnel</h2>
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-grid">
+                    <input type="text" name="security_rfid" placeholder="Security RFID (Numbers) *" required maxlength="15" oninput="previewUsername()">
+                    <input type="text" name="name" placeholder="Full Name *" required oninput="previewUsername()">
+                    <input type="email" name="email" placeholder="Email Address *" required>
+                    <select name="shift" required>
+                        <option value="">Select Shift *</option>
+                        <option value="Morning">Morning (6 AM - 2 PM)</option>
+                        <option value="Evening">Evening (2 PM - 10 PM)</option>
+                        <option value="Night">Night (10 PM - 6 AM)</option>
+                        <option value="General">General Duty</option>
+                        <option value="Floating">Floating Shift</option>
+                    </select>
+                </div>
+                
+                <!-- Username Preview -->
+                <div id="username-preview" class="username-preview" style="display: none;">
+                    <strong>Preview:</strong> Username: <code id="preview-username"></code> | Password: <code id="preview-password"></code>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">✅ Add Security Personnel</button>
+            </form>
+        </div>
+
+        <!-- Security List -->
+        <div class="list-section">
+            <h2>🛡️ Current Security Personnel ({{ security_list|length }})</h2>
+            
+            {% if security_list %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>RFID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Shift</th>
+                                <th>Login Credentials</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for security in security_list %}
+                                <tr>
+                                    <td><code>{{ security.security_rfid }}</code></td>
+                                    <td><strong>{{ security.name }}</strong></td>
+                                    <td>
+                                        <a href="mailto:{{ security.email }}" style="color: #06beb6; text-decoration: none;">
+                                            {{ security.email }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="shift-badge">{{ security.shift or 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        {% if security.has_login %}
+                                            <div class="login-status login-enabled">
+                                                <strong>✅ Login Enabled</strong><br>
+                                                <small>Username: <code>{{ security.login_username }}</code></small>
+                                            </div>
+                                        {% else %}
+                                            <div class="login-status login-disabled">
+                                                <strong>❌ No Login Account</strong><br>
+                                                <small>Use bulk actions to create</small>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if security.created_at %}
+                                            {{ security.created_at.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="post" style="display: inline;" 
+                                              onsubmit="return confirm('Are you sure you want to delete {{ security.name }}? This will also delete their login account and cannot be undone.')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="security_rfid" value="{{ security.security_rfid }}">
+                                            <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 60px 20px; color: #bdc3c7;">
+                    <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;">🛡️</div>
+                    <p>No security personnel found. Add the first one using the form above.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-secondary">🏠 Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 Lab Key Management System | Security Management | KG Institute of Technology
+    </div>
+
+    <!-- JavaScript for Username Preview -->
+    <script>
+        function previewUsername() {
+            const nameInput = document.querySelector('input[name="name"]');
+            const rfidInput = document.querySelector('input[name="security_rfid"]');
+            const previewDiv = document.getElementById('username-preview');
+            const previewUsername = document.getElementById('preview-username');
+            const previewPassword = document.getElementById('preview-password');
+            
+            const name = nameInput.value.trim();
+            const rfid = rfidInput.value.trim();
+            
+            if (name && rfid && rfid.length >= 3) {
+                // Simulate the username generation logic
+                const cleanName = name.toLowerCase().replace(/[^a-z ]/g, '');
+                const firstName = cleanName.split(' ')[0] || cleanName.substr(0, 6);
+                const lastDigits = rfid.slice(-3);
+                const username = firstName + lastDigits;
+                
+                // Generate password preview
+                const password = rfid.length >= 4 ? `sec${rfid.substr(0, 2)}${rfid.slice(-2)}` : `sec${rfid}`;
+                
+                previewUsername.textContent = username;
+                previewPassword.textContent = password;
+                previewDiv.style.display = 'block';
+            } else {
+                previewDiv.style.display = 'none';
+            }
+        }
+        
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.querySelector('input[name="name"]');
+            const rfidInput = document.querySelector('input[name="security_rfid"]');
+            
+            if (nameInput && rfidInput) {
+                nameInput.addEventListener('input', previewUsername);
+                rfidInput.addEventListener('input', previewUsername);
+            }
+        });
+        
+        // Auto-format RFID input (numbers only)
+        document.querySelector('input[name="security_rfid"]').addEventListener('input', function(e) {
+            // Remove any non-numeric characters
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+</body>
+</html>

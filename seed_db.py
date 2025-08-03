@@ -21,7 +21,7 @@ def seed_admins_only():
     
     print("👑 Creating admin users...")
     admin_users = [
-        {
+        {  # ← ADDED MISSING OPENING BRACE
             "username": "super_admin",
             "password": "super123",  # Change this!
             "email": "superadmin@kgkite.ac.in",
@@ -29,15 +29,15 @@ def seed_admins_only():
             "created_at": datetime.now(),
             "is_active": True
         },
-        {
+        {  # ← ADDED MISSING OPENING BRACE
             "username": "admin",
             "password": "admin123",  # Change this!
             "email": "admin@kgkite.ac.in",
-            "role": "admin", 
+            "role": "admin",
             "created_at": datetime.now(),
             "is_active": True
         },
-        {
+        {  # ← ADDED MISSING OPENING BRACE
             "username": "user1",
             "password": "user123",
             "email": "user1@kgkite.ac.in",
@@ -101,7 +101,7 @@ def seed_admins_only():
     print("\n👤 User Login Details:")
     print("   Username: user1")
     print("   Password: user123")
-    print("\n IMPORTANT: Change default passwords in production!")
+    print("\n⚠️  IMPORTANT: Change default passwords in production!")
     print("\n🎯 Next Steps:")
     print("   1. Login as super_admin")
     print("   2. Go to Super Admin Panel (/super_admin)")
