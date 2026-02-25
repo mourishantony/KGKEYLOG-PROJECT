@@ -8,6 +8,7 @@ from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 from dotenv import load_dotenv
+import certifi
 import smtplib
 import threading
 import time
@@ -20,7 +21,7 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = os.getenv("MONGO_DB_NAME", "user_database")
 
-client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = client[DB_NAME]
 
 app = Flask(__name__)

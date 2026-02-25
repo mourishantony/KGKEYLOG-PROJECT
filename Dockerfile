@@ -1,4 +1,7 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
+
+# Install CA certificates for SSL/TLS (needed for MongoDB Atlas)
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app

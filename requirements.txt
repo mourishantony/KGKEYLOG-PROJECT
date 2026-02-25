@@ -1,5 +1,6 @@
 Flask
-pymongo
+pymongo[srv]
 python-dotenv
 gunicorn
 dnspython
+certifi
