@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
+import certifi
 import os
 
 load_dotenv()
@@ -9,7 +10,7 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = os.getenv("MONGO_DB_NAME", "user_database")
 
-client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = client[DB_NAME]
 
 users_collection = db["users"]
