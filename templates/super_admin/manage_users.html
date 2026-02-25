@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - Super Admin</title>
+    <style>
+        /* ========== GLOBAL STYLES ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* ========== HEADER STYLES ========== */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 3px solid #06beb6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #06beb6;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: #bdc3c7;
+            font-weight: 300;
+        }
+        
+        /* ========== MANAGEMENT CONTAINER ========== */
+        .management-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* ========== NAVIGATION ========== */
+        .back-nav {
+            margin-bottom: 25px;
+        }
+        
+        .back-nav a {
+            color: #06beb6;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-nav a:hover {
+            color: #4ecdc4;
+            transform: translateX(-5px);
+        }
+        
+        /* ========== FLASH MESSAGES ========== */
+        .flash-message {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        
+        .flash-message.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border-left-color: #27ae60;
+        }
+        
+        .flash-message.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-left-color: #c0392b;
+        }
+        
+        /* ========== FORM SECTIONS ========== */
+        .form-section, .list-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-section h2, .list-section h2 {
+            color: #06beb6;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ========== FORM STYLES ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .form-grid input, .form-grid select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-grid input:focus, .form-grid select:focus {
+            outline: none;
+            border-color: #06beb6;
+            box-shadow: 0 0 15px rgba(6, 190, 182, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .form-grid input::placeholder {
+            color: #bdc3c7;
+        }
+        
+        .form-grid select option {
+            background: #34495e;
+            color: white;
+        }
+        
+        /* ========== BUTTON STYLES ========== */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(6, 190, 182, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+        }
+        
+        /* ========== TABLE STYLES ========== */
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(6, 190, 182, 0.2);
+            color: white;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        tr:hover {
+            background: rgba(6, 190, 182, 0.1);
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+        
+        /* ========== ROLE BADGES ========== */
+        .role-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 80px;
+        }
+        
+        .role-super-admin {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(243, 156, 18, 0.3);
+        }
+        
+        .role-admin {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        .role-security {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(46, 204, 113, 0.3);
+        }
+        
+        .role-hod {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(155, 89, 182, 0.3);
+        }
+        
+        .role-user {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(149, 165, 166, 0.3);
+        }
+        
+        /* ========== STATUS INDICATORS ========== */
+        .status-active {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+        
+        .status-inactive {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #bdc3c7;
+            font-size: 1.1rem;
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        /* ========== FOOTER ========== */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: 50px;
+            border-top: 3px solid #06beb6;
+            color: #bdc3c7;
+            font-size: 0.95rem;
+        }
+        
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 768px) {
+            .management-container {
+                padding: 20px 15px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-section, .list-section {
+                padding: 20px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+                font-size: 0.9rem;
+            }
+            
+            .table-container {
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-section, .list-section {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .form-section {
+            animation-delay: 0.1s;
+        }
+        
+        .list-section {
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👤 System User Management</h1>
+        <p>Super Admin Panel - Manage Administrative User Accounts</p>
+    </div>
+
+    <div class="management-container">
+        <div class="back-nav">
+            <a href="{{ url_for('super_admin_dashboard') }}">← Back to Dashboard</a>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Add User Form -->
+        <div class="form-section">
+            <h2>➕ Create New System User</h2>
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-grid">
+                    <input type="text" name="username" placeholder="Username *" required maxlength="50">
+                    <input type="password" name="password" placeholder="Password *" required maxlength="100">
+                    <input type="email" name="email" placeholder="Email Address *" required>
+                    <select name="role" required>
+                        <option value="">Select Role *</option>
+                        <option value="user">👤 User</option>
+                        <option value="security">🛡️ Security Personnel</option>
+                        <option value="admin">🔧 Admin</option>
+                        <option value="hod">🏢 Department HOD</option>
+                        <option value="dean">🎓 Dean/Director</option>
+                        <option value="principal">👨‍💼 Principal</option>
+                        <option value="admin_officer">📋 Administrative Officer</option>
+                        <option value="head_security">🛡️ Head of Security</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">✅ Create User Account</button>
+            </form>
+        </div>
+
+        <!-- Users List -->
+        <div class="list-section">
+            <h2>👥 Current System Users ({{ user_list|length }})</h2>
+            
+            {% if user_list %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_item in user_list %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ user_item.username }}</strong>
+                                        {% if user_item.username == user.username %}
+                                            <span style="color: #f39c12; font-size: 0.8rem;">(You)</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user_item.email or 'N/A' }}</td>
+                                    <td>
+                                        <span class="role-badge role-{{ user_item.role.replace('_', '-') }}">
+                                            {{ user_item.role.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if user_item.get('is_active', True) %}
+                                            <span class="status-active">● Active</span>
+                                        {% else %}
+                                            <span class="status-inactive">● Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user_item.created_at %}
+                                            {{ user_item.created_at.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user_item.username != user.username %}
+                                            <form method="post" style="display: inline;" 
+                                                  onsubmit="return confirm('Are you sure you want to delete user {{ user_item.username }}? This action cannot be undone.')">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="username" value="{{ user_item.username }}">
+                                                <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                                            </form>
+                                        {% else %}
+                                            <span style="color: #95a5a6; font-size: 0.9rem;">Cannot delete own account</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">👤</div>
+                    <p>No system users found. Create the first user account using the form above.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-secondary">🏠 Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 Lab Key Management System | User Management | KG Institute of Technology
+    </div>
+</body>
+</html>

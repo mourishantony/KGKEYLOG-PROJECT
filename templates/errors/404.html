@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - Lab Key Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h1>🏫 KG Institute of Technology</h1>
+        <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
+    </div>
+
+    <div class="container">
+        <h2>🔍 Page Not Found</h2>
+        <p>The page you're looking for doesn't exist.</p>
+        <div class="message">
+            <p>Error 404 - The requested URL was not found on this server.</p>
+        </div>
+        <a href="{{ url_for('home') }}" style="color: #06beb6; text-decoration: none; font-weight: bold;">
+            ← Go back to Home
+        </a>
+    </div>
+
+    <div class="footer">
+        © 2024 Lab Key Management System | Developed for KG Institute of Technology
+    </div>
+</body>
+</html>
