@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Panel - KG Keylog</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='KGLOGO.jpg') }}" alt="Logo">
+        <div>
+            <h1>KGiSL Institute of Technology</h1>
+            <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
+        </div>
+        <div class="header-actions">
+            <a class="btn-home" href="{{ url_for('home') }}">Home</a>
+            <a class="btn-logout" href="{{ url_for('login') }}">Logout</a>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <h2>Admin Panel</h2>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('users')">Users</button>
+            <button class="tab-btn" onclick="switchTab('staff')">Staff</button>
+            <button class="tab-btn" onclick="switchTab('labs')">Labs</button>
+            <button class="tab-btn" onclick="switchTab('security')">Security</button>
+            <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+        </div>
+
+        <!-- ==================== USERS TAB ==================== -->
+        <div id="tab-users" class="tab-content active">
+            <div class="section-header">
+                <h3>Manage Login Users</h3>
+                <button class="btn-add" onclick="showAddUserForm()">+ Add User</button>
+            </div>
+
+            <div id="add-user-form" class="form-card toggleable hidden">
+                <h4 id="user-form-title">Add New User</h4>
+                <input type="hidden" id="edit-user-id">
+                <input type="text" id="user-username" placeholder="Username">
+                <input type="password" id="user-password" placeholder="Password">
+                <select id="user-role">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveUser()">Save</button>
+                    <button class="btn-cancel" onclick="hideForm('add-user-form')">Cancel</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        {% for user in users %}
+                        <tr id="user-row-{{ user._id }}">
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.get('role', 'user') | capitalize }}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editUser('{{ user._id }}', '{{ user.username }}', '{{ user.get('role', 'user') }}')">Edit</button>
+                                <button class="btn-delete" onclick="deleteUser('{{ user._id }}', '{{ user.username }}')">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== STAFF TAB ==================== -->
+        <div id="tab-staff" class="tab-content">
+            <div class="section-header">
+                <h3>Manage Staff RFIDs</h3>
+                <button class="btn-add" onclick="showAddStaffForm()">+ Add Staff</button>
+            </div>
+
+            <div id="add-staff-form" class="form-card toggleable hidden">
+                <h4 id="staff-form-title">Add New Staff</h4>
+                <input type="hidden" id="edit-staff-id">
+                <input type="text" id="staff-rfid" placeholder="Staff RFID">
+                <input type="text" id="staff-name" placeholder="Staff Name">
+                <input type="email" id="staff-email" placeholder="Email">
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveStaff()">Save</button>
+                    <button class="btn-cancel" onclick="hideForm('add-staff-form')">Cancel</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RFID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-tbody">
+                        {% for s in staff %}
+                        <tr id="staff-row-{{ s._id }}">
+                            <td>{{ s.staff_rfid }}</td>
+                            <td>{{ s.name }}</td>
+                            <td>{{ s.email }}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editStaff('{{ s._id }}', '{{ s.staff_rfid }}', '{{ s.name }}', '{{ s.email }}')">Edit</button>
+                                <button class="btn-delete" onclick="deleteStaff('{{ s._id }}', '{{ s.name }}')">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== LABS TAB ==================== -->
+        <div id="tab-labs" class="tab-content">
+            <div class="section-header">
+                <h3>Manage Lab Keys</h3>
+                <button class="btn-add" onclick="showAddLabForm()">+ Add Lab</button>
+            </div>
+
+            <div id="add-lab-form" class="form-card toggleable hidden">
+                <h4 id="lab-form-title">Add New Lab</h4>
+                <input type="hidden" id="edit-lab-id">
+                <input type="text" id="lab-rfid" placeholder="Lab RFID">
+                <input type="text" id="lab-name" placeholder="Lab Name">
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveLab()">Save</button>
+                    <button class="btn-cancel" onclick="hideForm('add-lab-form')">Cancel</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RFID</th>
+                            <th>Lab Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="labs-tbody">
+                        {% for l in labs %}
+                        <tr id="lab-row-{{ l._id }}">
+                            <td>{{ l.lab_rfid }}</td>
+                            <td>{{ l.lab_name }}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editLab('{{ l._id }}', '{{ l.lab_rfid }}', '{{ l.lab_name }}')">Edit</button>
+                                <button class="btn-delete" onclick="deleteLab('{{ l._id }}', '{{ l.lab_name }}')">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== SECURITY TAB ==================== -->
+        <div id="tab-security" class="tab-content">
+            <div class="section-header">
+                <h3>Manage Security Personnel</h3>
+                <button class="btn-add" onclick="showAddSecurityForm()">+ Add Security</button>
+            </div>
+
+            <div id="add-security-form" class="form-card toggleable hidden">
+                <h4 id="security-form-title">Add New Security</h4>
+                <input type="hidden" id="edit-security-id">
+                <input type="text" id="security-rfid" placeholder="Security RFID">
+                <input type="text" id="security-name" placeholder="Security Name">
+                <input type="email" id="security-email" placeholder="Email">
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveSecurity()">Save</button>
+                    <button class="btn-cancel" onclick="hideForm('add-security-form')">Cancel</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RFID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="security-tbody">
+                        {% for sec in security %}
+                        <tr id="security-row-{{ sec._id }}">
+                            <td>{{ sec.security_rfid }}</td>
+                            <td>{{ sec.name }}</td>
+                            <td>{{ sec.email }}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editSecurity('{{ sec._id }}', '{{ sec.security_rfid }}', '{{ sec.name }}', '{{ sec.email }}')">Edit</button>
+                                <button class="btn-delete" onclick="deleteSecurity('{{ sec._id }}', '{{ sec.name }}')">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== SETTINGS TAB ==================== -->
+        <div id="tab-settings" class="tab-content">
+            <div class="section-header">
+                <h3>Email Alert Time Limits</h3>
+            </div>
+
+            <div class="settings-info">
+                <p>Configure how long the system waits before sending email alerts after a key is taken. Use <strong>HH:MM</strong> format (24-hour).</p>
+            </div>
+
+            <div class="form-card">
+                <div class="settings-row">
+                    <div class="settings-field">
+                        <label>Alert 1 — Watchman Notification</label>
+                        <p class="settings-desc">Email sent to the watchman when key is not returned</p>
+                        <div class="time-input-group">
+                            <input type="text" id="setting-t1" class="time-hhmm" placeholder="HH:MM" maxlength="5">
+                            <span class="time-unit">HH:MM</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-field">
+                        <label>Alert 2 — Staff Reminder</label>
+                        <p class="settings-desc">Reminder email sent directly to the staff member</p>
+                        <div class="time-input-group">
+                            <input type="text" id="setting-t2" class="time-hhmm" placeholder="HH:MM" maxlength="5">
+                            <span class="time-unit">HH:MM</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-field">
+                        <label>Alert 3 — Chief Authority Escalation</label>
+                        <p class="settings-desc">Escalation email sent to the chief authority for immediate action</p>
+                        <div class="time-input-group">
+                            <input type="text" id="setting-t3" class="time-hhmm" placeholder="HH:MM" maxlength="5">
+                            <span class="time-unit">HH:MM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-note">
+                    <strong>Note:</strong> Times must be in ascending order (Alert 1 &lt; Alert 2 &lt; Alert 3). Changes apply to new key pickups immediately — no restart needed.
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
+
+            <div class="settings-preview">
+                <h4>Current Timeline Preview</h4>
+                <div class="timeline" id="timeline-preview">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; 2025 IPS Tech Community. All Rights Reserved.
+    </div>
+
+    <script>
+        // ==================== TAB SWITCHING ====================
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+            // Hide add/edit forms when switching tabs (but not the settings form)
+            document.querySelectorAll('.form-card.toggleable').forEach(f => f.classList.add('hidden'));
+        }
+
+        function hideForm(formId) {
+            document.getElementById(formId).classList.add('hidden');
+        }
+
+        // ==================== HELPER ====================
+        async function apiCall(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            return await res.json();
+        }
+
+        function showAlert(icon, title, text) {
+            Swal.fire({ icon, title, text });
+        }
+
+        // ==================== USERS ====================
+        function showAddUserForm() {
+            document.getElementById('user-form-title').textContent = 'Add New User';
+            document.getElementById('edit-user-id').value = '';
+            document.getElementById('user-username').value = '';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-role').value = 'user';
+            document.getElementById('user-password').placeholder = 'Password';
+            document.getElementById('add-user-form').classList.remove('hidden');
+        }
+
+        function editUser(id, username, role) {
+            document.getElementById('user-form-title').textContent = 'Edit User';
+            document.getElementById('edit-user-id').value = id;
+            document.getElementById('user-username').value = username;
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-password').placeholder = 'New password (leave blank to keep)';
+            document.getElementById('user-role').value = role;
+            document.getElementById('add-user-form').classList.remove('hidden');
+        }
+
+        async function saveUser() {
+            const id = document.getElementById('edit-user-id').value;
+            const username = document.getElementById('user-username').value.trim();
+            const password = document.getElementById('user-password').value.trim();
+            const role = document.getElementById('user-role').value;
+
+            if (!username || (!id && !password)) {
+                return showAlert('error', 'Error', 'Username and password are required.');
+            }
+
+            const url = id ? '/admin/edit_user' : '/admin/add_user';
+            const body = { username, password, role };
+            if (id) body.id = id;
+
+            const data = await apiCall(url, body);
+            if (data.error) {
+                showAlert('error', 'Error', data.error);
+            } else {
+                showAlert('success', 'Success', data.message);
+                setTimeout(() => location.reload(), 1200);
+            }
+        }
+
+        async function deleteUser(id, username) {
+            const result = await Swal.fire({
+                title: 'Delete User?',
+                text: `Are you sure you want to delete "${username}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete!'
+            });
+            if (result.isConfirmed) {
+                const data = await apiCall('/admin/delete_user', { id });
+                if (data.error) {
+                    showAlert('error', 'Error', data.error);
+                } else {
+                    showAlert('success', 'Deleted', data.message);
+                    setTimeout(() => location.reload(), 1200);
+                }
+            }
+        }
+
+        // ==================== STAFF ====================
+        function showAddStaffForm() {
+            document.getElementById('staff-form-title').textContent = 'Add New Staff';
+            document.getElementById('edit-staff-id').value = '';
+            document.getElementById('staff-rfid').value = '';
+            document.getElementById('staff-name').value = '';
+            document.getElementById('staff-email').value = '';
+            document.getElementById('add-staff-form').classList.remove('hidden');
+        }
+
+        function editStaff(id, rfid, name, email) {
+            document.getElementById('staff-form-title').textContent = 'Edit Staff';
+            document.getElementById('edit-staff-id').value = id;
+            document.getElementById('staff-rfid').value = rfid;
+            document.getElementById('staff-name').value = name;
+            document.getElementById('staff-email').value = email;
+            document.getElementById('add-staff-form').classList.remove('hidden');
+        }
+
+        async function saveStaff() {
+            const id = document.getElementById('edit-staff-id').value;
+            const staff_rfid = document.getElementById('staff-rfid').value.trim();
+            const name = document.getElementById('staff-name').value.trim();
+            const email = document.getElementById('staff-email').value.trim();
+
+            if (!staff_rfid || !name || !email) {
+                return showAlert('error', 'Error', 'All fields are required.');
+            }
+
+            const url = id ? '/admin/edit_staff' : '/admin/add_staff';
+            const body = { staff_rfid, name, email };
+            if (id) body.id = id;
+
+            const data = await apiCall(url, body);
+            if (data.error) {
+                showAlert('error', 'Error', data.error);
+            } else {
+                showAlert('success', 'Success', data.message);
+                setTimeout(() => location.reload(), 1200);
+            }
+        }
+
+        async function deleteStaff(id, name) {
+            const result = await Swal.fire({
+                title: 'Delete Staff?',
+                text: `Are you sure you want to delete "${name}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete!'
+            });
+            if (result.isConfirmed) {
+                const data = await apiCall('/admin/delete_staff', { id });
+                if (data.error) {
+                    showAlert('error', 'Error', data.error);
+                } else {
+                    showAlert('success', 'Deleted', data.message);
+                    setTimeout(() => location.reload(), 1200);
+                }
+            }
+        }
+
+        // ==================== LABS ====================
+        function showAddLabForm() {
+            document.getElementById('lab-form-title').textContent = 'Add New Lab';
+            document.getElementById('edit-lab-id').value = '';
+            document.getElementById('lab-rfid').value = '';
+            document.getElementById('lab-name').value = '';
+            document.getElementById('add-lab-form').classList.remove('hidden');
+        }
+
+        function editLab(id, rfid, name) {
+            document.getElementById('lab-form-title').textContent = 'Edit Lab';
+            document.getElementById('edit-lab-id').value = id;
+            document.getElementById('lab-rfid').value = rfid;
+            document.getElementById('lab-name').value = name;
+            document.getElementById('add-lab-form').classList.remove('hidden');
+        }
+
+        async function saveLab() {
+            const id = document.getElementById('edit-lab-id').value;
+            const lab_rfid = document.getElementById('lab-rfid').value.trim();
+            const lab_name = document.getElementById('lab-name').value.trim();
+
+            if (!lab_rfid || !lab_name) {
+                return showAlert('error', 'Error', 'All fields are required.');
+            }
+
+            const url = id ? '/admin/edit_lab' : '/admin/add_lab';
+            const body = { lab_rfid, lab_name };
+            if (id) body.id = id;
+
+            const data = await apiCall(url, body);
+            if (data.error) {
+                showAlert('error', 'Error', data.error);
+            } else {
+                showAlert('success', 'Success', data.message);
+                setTimeout(() => location.reload(), 1200);
+            }
+        }
+
+        async function deleteLab(id, name) {
+            const result = await Swal.fire({
+                title: 'Delete Lab?',
+                text: `Are you sure you want to delete "${name}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete!'
+            });
+            if (result.isConfirmed) {
+                const data = await apiCall('/admin/delete_lab', { id });
+                if (data.error) {
+                    showAlert('error', 'Error', data.error);
+                } else {
+                    showAlert('success', 'Deleted', data.message);
+                    setTimeout(() => location.reload(), 1200);
+                }
+            }
+        }
+
+        // ==================== SECURITY ====================
+        function showAddSecurityForm() {
+            document.getElementById('security-form-title').textContent = 'Add New Security';
+            document.getElementById('edit-security-id').value = '';
+            document.getElementById('security-rfid').value = '';
+            document.getElementById('security-name').value = '';
+            document.getElementById('security-email').value = '';
+            document.getElementById('add-security-form').classList.remove('hidden');
+        }
+
+        function editSecurity(id, rfid, name, email) {
+            document.getElementById('security-form-title').textContent = 'Edit Security';
+            document.getElementById('edit-security-id').value = id;
+            document.getElementById('security-rfid').value = rfid;
+            document.getElementById('security-name').value = name;
+            document.getElementById('security-email').value = email;
+            document.getElementById('add-security-form').classList.remove('hidden');
+        }
+
+        async function saveSecurity() {
+            const id = document.getElementById('edit-security-id').value;
+            const security_rfid = document.getElementById('security-rfid').value.trim();
+            const name = document.getElementById('security-name').value.trim();
+            const email = document.getElementById('security-email').value.trim();
+
+            if (!security_rfid || !name || !email) {
+                return showAlert('error', 'Error', 'All fields are required.');
+            }
+
+            const url = id ? '/admin/edit_security' : '/admin/add_security';
+            const body = { security_rfid, name, email };
+            if (id) body.id = id;
+
+            const data = await apiCall(url, body);
+            if (data.error) {
+                showAlert('error', 'Error', data.error);
+            } else {
+                showAlert('success', 'Success', data.message);
+                setTimeout(() => location.reload(), 1200);
+            }
+        }
+
+        async function deleteSecurity(id, name) {
+            const result = await Swal.fire({
+                title: 'Delete Security?',
+                text: `Are you sure you want to delete "${name}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete!'
+            });
+            if (result.isConfirmed) {
+                const data = await apiCall('/admin/delete_security', { id });
+                if (data.error) {
+                    showAlert('error', 'Error', data.error);
+                } else {
+                    showAlert('success', 'Deleted', data.message);
+                    setTimeout(() => location.reload(), 1200);
+                }
+            }
+        }
+
+        // ==================== SETTINGS ====================
+
+        // Convert seconds to HH:MM string
+        function secondsToHHMM(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+        }
+
+        // Convert HH:MM string to seconds
+        function hhmmToSeconds(hhmm) {
+            const parts = hhmm.split(':');
+            if (parts.length !== 2) return NaN;
+            const h = parseInt(parts[0]);
+            const m = parseInt(parts[1]);
+            if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return NaN;
+            return (h * 3600) + (m * 60);
+        }
+
+        // Format seconds as readable text for timeline
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds <= 0) return '—';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            if (h === 0 && m === 0) return '< 1 min';
+            if (h === 0) return m + ' min';
+            if (m === 0) return h + 'h';
+            return h + 'h ' + m + 'min';
+        }
+
+        // Auto-format: insert colon after 2 digits
+        function handleTimeInput(e) {
+            let val = e.target.value.replace(/[^0-9:]/g, '');
+            // Auto-insert colon after 2 digits if user hasn't typed one
+            if (val.length === 2 && !val.includes(':')) {
+                val = val + ':';
+            }
+            // Prevent more than 5 chars (HH:MM)
+            if (val.length > 5) val = val.substring(0, 5);
+            e.target.value = val;
+            updateTimeline();
+        }
+
+        function updateTimeline() {
+            const t1 = hhmmToSeconds(document.getElementById('setting-t1').value);
+            const t2 = hhmmToSeconds(document.getElementById('setting-t2').value);
+            const t3 = hhmmToSeconds(document.getElementById('setting-t3').value);
+            const preview = document.getElementById('timeline-preview');
+            preview.innerHTML = `
+                <div class="timeline-item">
+                    <span class="timeline-dot dot-yellow"></span>
+                    <span class="timeline-label">At <strong>${formatTime(t1)}</strong> — Watchman gets notified</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-dot dot-orange"></span>
+                    <span class="timeline-label">At <strong>${formatTime(t2)}</strong> — Staff gets a reminder</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-dot dot-red"></span>
+                    <span class="timeline-label">At <strong>${formatTime(t3)}</strong> — Chief Authority is escalated</span>
+                </div>
+            `;
+        }
+
+        // Load saved values and set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Convert seconds from DB to HH:MM for display
+            document.getElementById('setting-t1').value = secondsToHHMM({{ settings.get('time_limit_1', 15) }});
+            document.getElementById('setting-t2').value = secondsToHHMM({{ settings.get('time_limit_2', 30) }});
+            document.getElementById('setting-t3').value = secondsToHHMM({{ settings.get('time_limit_3', 60) }});
+            updateTimeline();
+
+            // Attach auto-format and timeline update listeners
+            ['setting-t1', 'setting-t2', 'setting-t3'].forEach(id => {
+                document.getElementById(id).addEventListener('input', handleTimeInput);
+            });
+        });
+
+        async function saveSettings() {
+            const t1 = hhmmToSeconds(document.getElementById('setting-t1').value);
+            const t2 = hhmmToSeconds(document.getElementById('setting-t2').value);
+            const t3 = hhmmToSeconds(document.getElementById('setting-t3').value);
+
+            if (isNaN(t1) || isNaN(t2) || isNaN(t3) || t1 <= 0 || t2 <= 0 || t3 <= 0) {
+                return showAlert('error', 'Error', 'Please enter valid times in HH:MM format (e.g., 01:30 for 1 hour 30 minutes).');
+            }
+
+            if (!(t1 < t2 && t2 < t3)) {
+                return showAlert('error', 'Error', 'Times must be in ascending order (Alert 1 < Alert 2 < Alert 3).');
+            }
+
+            const data = await apiCall('/admin/update_settings', {
+                time_limit_1: t1,
+                time_limit_2: t2,
+                time_limit_3: t3
+            });
+
+            if (data.error) {
+                showAlert('error', 'Error', data.error);
+            } else {
+                showAlert('success', 'Saved', data.message);
+            }
+        }
+    </script>
+</body>
+</html>

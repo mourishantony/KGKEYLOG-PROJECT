@@ -5,23 +5,23 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from datetime import datetime, timedelta
 from pymongo import MongoClient
+from werkzeug.security import generate_password_hash, check_password_hash
+from bson import ObjectId
+from dotenv import load_dotenv
 import smtplib
 import threading
 import time
-import logging
-from config import Config
-from models import User
+import os
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('app.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+# Load environment variables
+load_dotenv()
+
+# MongoDB Connection (supports both local and Atlas)
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+DB_NAME = os.getenv("MONGO_DB_NAME", "user_database")
+
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -51,75 +51,47 @@ lab_collection = db["labs"]
 temp_logs = db["temp_logs"]
 permanent_logs = db["permanent_logs"]
 security_collection = db["security"]
+settings_collection = db["settings"]
 
-# Email Configuration from config
-EMAIL_SENDER = app.config['EMAIL_SENDER']
-EMAIL_PASSWORD = app.config['EMAIL_PASSWORD']
-WATCHMAN_EMAIL = app.config['WATCHMAN_EMAIL']
-CHIEF_AUTHORITY_EMAIL = app.config['CHIEF_AUTHORITY_EMAIL']
+app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
 
-# Time Limits from config
-TIME_LIMIT_1 = app.config['TIME_LIMIT_1']
-TIME_LIMIT_2 = app.config['TIME_LIMIT_2']
-TIME_LIMIT_3 = app.config['TIME_LIMIT_3']
+# Email Configuration from .env
+EMAIL_SENDER = os.getenv("EMAIL_SENDER")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+WATCHMAN_EMAIL = os.getenv("WATCHMAN_EMAIL")
+CHIEF_AUTHORITY_EMAIL = os.getenv("CHIEF_AUTHORITY_EMAIL")
 
-# Database object for models
-class Database:
-    def __init__(self):
-        self.users_collection = users_collection
-        self.staff_collection = staff_collection
-        self.lab_collection = lab_collection
-        self.temp_logs = temp_logs
-        self.permanent_logs = permanent_logs
-        self.security_collection = security_collection
+# Default Time Limits (seconds) - these are overridden by DB settings
+DEFAULT_TIME_LIMIT_1 = 15
+DEFAULT_TIME_LIMIT_2 = 30
+DEFAULT_TIME_LIMIT_3 = 60
 
-db_obj = Database()
+def get_time_limits():
+    """Fetch time limits from the database. Falls back to defaults."""
+    settings = settings_collection.find_one({"key": "time_limits"})
+    if settings:
+        return (
+            settings.get("time_limit_1", DEFAULT_TIME_LIMIT_1),
+            settings.get("time_limit_2", DEFAULT_TIME_LIMIT_2),
+            settings.get("time_limit_3", DEFAULT_TIME_LIMIT_3)
+        )
+    return (DEFAULT_TIME_LIMIT_1, DEFAULT_TIME_LIMIT_2, DEFAULT_TIME_LIMIT_3)
 
-@login_manager.user_loader
-def load_user(username):
-    """Load user for Flask-Login"""
-    return User.get(username, db_obj)
+def init_settings():
+    """Initialize default settings in DB if they don't exist."""
+    if not settings_collection.find_one({"key": "time_limits"}):
+        settings_collection.insert_one({
+            "key": "time_limits",
+            "time_limit_1": DEFAULT_TIME_LIMIT_1,
+            "time_limit_2": DEFAULT_TIME_LIMIT_2,
+            "time_limit_3": DEFAULT_TIME_LIMIT_3,
+            "label_1": "Watchman Alert",
+            "label_2": "Staff Reminder",
+            "label_3": "Chief Authority Escalation"
+        })
 
-# Security Headers Middleware
-@app.after_request
-def add_security_headers(response):
-    """Add security headers to all responses"""
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    
-    # Only add HSTS in production with HTTPS
-    if not app.debug:
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    
-    return response
-
-# Security Event Logging
-def log_security_event(event_type, username=None, details=None):
-    """Log security events for monitoring"""
-    logger.warning(f"SECURITY EVENT: {event_type} | User: {username or 'Anonymous'} | Details: {details or 'None'} | IP: {request.remote_addr}")
-
-# Helper functions
-def json_error(message, status_code=400):
-    """Helper function for consistent JSON error responses"""
-    return jsonify({
-        "success": False,
-        "message": message,
-        "status_code": status_code,
-        "timestamp": datetime.now().isoformat()
-    }), status_code
-
-def json_success(message, data=None):
-    """Helper function for consistent JSON success responses"""
-    response = {
-        "success": True,
-        "message": message,
-        "timestamp": datetime.now().isoformat()
-    }
-    if data:
-        response["data"] = data
-    return jsonify(response), 200
+init_settings()
 
 def send_email(to_email, subject, message):
     """Function to send an email."""
@@ -134,7 +106,7 @@ def send_email(to_email, subject, message):
         logger.error(f"Error sending email to {to_email}: {e}")
 
 def monitor_key_return(staff_rfid, lab_rfid, staff_name, lab_name, staff_email):
-    """Enhanced monitoring with dynamic escalation based on roles"""
+    """Monitor key return and send alerts. Reads time limits from DB each cycle."""
     entry = temp_logs.find_one({"staff_rfid": staff_rfid, "lab_rfid": lab_rfid})
     if not entry:
         return
@@ -183,65 +155,22 @@ def monitor_key_return(staff_rfid, lab_rfid, staff_name, lab_name, staff_email):
         for email in recipients:
             send_email(email, "URGENT: Key Return Reminder - Level 2", message)
 
-    # Level 3: Higher authorities escalation
-    time.sleep(time_limits[2] - time_limits[1])
-    entry = temp_logs.find_one({"staff_rfid": staff_rfid, "lab_rfid": lab_rfid})
-    if entry:
-        recipients = get_escalation_recipients("level_3", dept_id)
-        
-        message = f"🚨 CRITICAL ESCALATION: {staff_name} has still not returned the key for {lab_name}.\nKey Taken At: {taken_time}\n\nImmediate action required!"
-        
-        for email in recipients:
-            send_email(email, "CRITICAL: Key Return Escalation - Level 3", message)
+    # Read current time limits from DB (admin can change these at any time)
+    t1, t2, t3 = get_time_limits()
 
-def get_escalation_recipients(level, dept_id=None):
-    """Get email recipients based on escalation level and department"""
-    recipients = []
-    
-    # Get users based on level and department
-    if level == "level_1":
-        # Security personnel
-        security_users = users_collection.find({"role": "security"})
-        recipients.extend([user["email"] for user in security_users if user.get("email")])
-    
-    elif level == "level_2":
-        # Department HOD if department-specific lab
-        if dept_id:
-            hod_users = users_collection.find({"role": "hod", "department": dept_id})
-            recipients.extend([user["email"] for user in hod_users if user.get("email")])
-        
-        # Head of Security
-        head_security_users = users_collection.find({"role": "head_security"})
-        recipients.extend([user["email"] for user in head_security_users if user.get("email")])
-    
-    elif level == "level_3":
-        # All higher authorities
-        authority_roles = ["dean", "principal", "admin_officer"]
-        authority_users = users_collection.find({"role": {"$in": authority_roles}})
-        recipients.extend([user["email"] for user in authority_users if user.get("email")])
-    
-    return list(set(recipients))  # Remove duplicates
-
-    """Monitor key return and send alerts."""
-    entry = temp_logs.find_one({"staff_rfid": staff_rfid, "lab_rfid": lab_rfid})
-    if not entry:
-        return
-
-    taken_time = entry["taken_at"]
-    time.sleep(TIME_LIMIT_1)
-
+    time.sleep(t1)
     entry = temp_logs.find_one({"staff_rfid": staff_rfid, "lab_rfid": lab_rfid})
     if entry:
         send_email(WATCHMAN_EMAIL, "Key Return Delay Alert",
                   f"{staff_name} has not returned the key for {lab_name}.\nKey Taken At: {taken_time}")
 
-    time.sleep(TIME_LIMIT_2 - TIME_LIMIT_1)
+    time.sleep(t2 - t1)
     entry = temp_logs.find_one({"staff_rfid": staff_rfid, "lab_rfid": lab_rfid})
     if entry:
         send_email(staff_email, "Key Return Reminder",
                   f"Dear {staff_name}, please return the key for {lab_name} immediately.\nKey Taken At: {taken_time}")
 
-    time.sleep(TIME_LIMIT_3 - TIME_LIMIT_2)
+    time.sleep(t3 - t2)
     entry = temp_logs.find_one({"staff_rfid": staff_rfid, "lab_rfid": lab_rfid})
     if entry:
         send_email(CHIEF_AUTHORITY_EMAIL, "Key Return Escalation",
@@ -269,12 +198,14 @@ def force_logout_user():
 @app.route("/", methods=["GET", "POST"])
 @limiter.limit("10 per minute")
 def login():
-    """Enhanced login with security features."""
-    
-    # Better authentication check
-    try:
-        if current_user and current_user.is_authenticated and hasattr(current_user, 'username'):
-            logger.info(f"User {current_user.username} already authenticated, redirecting to home")
+    """Login page."""
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        user = users_collection.find_one({"username": username})
+        if user and check_password_hash(user["password"], password):
+            session["username"] = username
+            session["role"] = user.get("role", "user")
             return redirect(url_for("home"))
     except Exception as e:
         # If there's any issue with current_user, clear session and continue
@@ -323,37 +254,18 @@ def login():
 
     return render_template("login.html")
 
-
-@app.route("/logout", methods=["GET", "POST"])
-@login_required
-def logout():
-    """Secure logout with complete session cleanup."""
-    username = current_user.username
-    
-    # Force logout user
-    logout_user()
-    
-    # Clear ALL session data
-    session.clear()
-    
-    # Additional cleanup for Flask-Login
-    if hasattr(session, '_user_id'):
-        delattr(session, '_user_id')
-    if hasattr(session, '_fresh'):
-        delattr(session, '_fresh')
-    
-    logger.info(f"User {username} logged out completely")
-    log_security_event("LOGOUT", username)
-    
-    # Create a new response to clear cookies
-    response = redirect(url_for("login"))
-    
-    # Clear remember me cookie if it exists
-    response.set_cookie('remember_token', '', expires=0)
-    response.set_cookie('session', '', expires=0)
-    
-    flash("✅ You have been logged out successfully!", "success")
-    return response
+@app.route("/get_staff_name", methods=["POST"])
+def get_staff_name():
+    """Return staff name for a given RFID."""
+    data = request.get_json()
+    rfid = data.get("rfid", "").strip()
+    staff = staff_collection.find_one({"staff_rfid": rfid})
+    if staff:
+        return jsonify({"name": staff["name"]})
+    security = security_collection.find_one({"security_rfid": rfid})
+    if security:
+        return jsonify({"name": security["name"]})
+    return jsonify({"error": "RFID not found"}), 404
 
 @app.route("/home", methods=["GET", "POST"])
 @login_required
@@ -363,6 +275,8 @@ def home():
     logger.info(f"User {current_user.username} accessed home page")
     
     message = ""
+    is_admin = session.get("role") == "admin"
+
     if request.method == "POST":
         try:
             # Validate CSRF token is handled automatically by Flask-WTF
@@ -486,9 +400,314 @@ def home():
                         "taken_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     })
 
-                except Exception as e:
-                    logger.error(f"Error inserting log data: {e}")
-                    return json_error("⚠️ Error inserting log data into database.", 500)
+    return render_template("home.html", message=message, is_admin=is_admin)
+
+
+@app.route("/admin")
+def admin_panel():
+    """Admin panel page - only accessible by admin users."""
+    if "username" not in session:
+        return redirect(url_for("login"))
+    if session.get("role") != "admin":
+        flash("❌ Access denied! Admin only.", "danger")
+        return redirect(url_for("home"))
+
+    users = list(users_collection.find())
+    staff = list(staff_collection.find())
+    labs = list(lab_collection.find())
+    security = list(security_collection.find())
+
+    # Convert ObjectId to string for template
+    for u in users:
+        u["_id"] = str(u["_id"])
+    for s in staff:
+        s["_id"] = str(s["_id"])
+    for l in labs:
+        l["_id"] = str(l["_id"])
+    for sec in security:
+        sec["_id"] = str(sec["_id"])
+
+    # Fetch current time limit settings
+    settings = settings_collection.find_one({"key": "time_limits"}) or {}
+
+    return render_template("admin.html", users=users, staff=staff, labs=labs, security=security, settings=settings)
+
+
+# ===================== ADMIN API ROUTES =====================
+
+def admin_required(f):
+    """Decorator to restrict routes to admin users."""
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if "username" not in session:
+            return jsonify({"error": "Not logged in"}), 401
+        if session.get("role") != "admin":
+            return jsonify({"error": "Admin access required"}), 403
+        return f(*args, **kwargs)
+    return decorated
+
+
+# --- USER MANAGEMENT ---
+
+@app.route("/admin/add_user", methods=["POST"])
+@admin_required
+def add_user():
+    data = request.get_json()
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+    role = data.get("role", "user").strip()
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required."}), 400
+
+    if users_collection.find_one({"username": username}):
+        return jsonify({"error": "Username already exists."}), 400
+
+    users_collection.insert_one({
+        "username": username,
+        "password": generate_password_hash(password),
+        "role": role
+    })
+    return jsonify({"message": f"User '{username}' added successfully."})
+
+
+@app.route("/admin/edit_user", methods=["POST"])
+@admin_required
+def edit_user():
+    data = request.get_json()
+    user_id = data.get("id")
+    username = data.get("username", "").strip()
+    role = data.get("role", "user").strip()
+    password = data.get("password", "").strip()
+
+    if not user_id or not username:
+        return jsonify({"error": "User ID and username are required."}), 400
+
+    update_fields = {"username": username, "role": role}
+    if password:
+        update_fields["password"] = generate_password_hash(password)
+
+    users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": update_fields})
+    return jsonify({"message": f"User '{username}' updated successfully."})
+
+
+@app.route("/admin/delete_user", methods=["POST"])
+@admin_required
+def delete_user():
+    data = request.get_json()
+    user_id = data.get("id")
+
+    if not user_id:
+        return jsonify({"error": "User ID is required."}), 400
+
+    # Prevent deleting yourself
+    user = users_collection.find_one({"_id": ObjectId(user_id)})
+    if user and user["username"] == session["username"]:
+        return jsonify({"error": "You cannot delete your own account."}), 400
+
+    users_collection.delete_one({"_id": ObjectId(user_id)})
+    return jsonify({"message": "User deleted successfully."})
+
+
+# --- STAFF MANAGEMENT ---
+
+@app.route("/admin/add_staff", methods=["POST"])
+@admin_required
+def add_staff():
+    data = request.get_json()
+    staff_rfid = data.get("staff_rfid", "").strip()
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip()
+
+    if not staff_rfid or not name or not email:
+        return jsonify({"error": "All fields are required."}), 400
+
+    if staff_collection.find_one({"staff_rfid": staff_rfid}):
+        return jsonify({"error": "Staff RFID already exists."}), 400
+
+    staff_collection.insert_one({"staff_rfid": staff_rfid, "name": name, "email": email})
+    return jsonify({"message": f"Staff '{name}' added successfully."})
+
+
+@app.route("/admin/edit_staff", methods=["POST"])
+@admin_required
+def edit_staff():
+    data = request.get_json()
+    staff_id = data.get("id")
+    staff_rfid = data.get("staff_rfid", "").strip()
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip()
+
+    if not staff_id or not staff_rfid or not name or not email:
+        return jsonify({"error": "All fields are required."}), 400
+
+    staff_collection.update_one(
+        {"_id": ObjectId(staff_id)},
+        {"$set": {"staff_rfid": staff_rfid, "name": name, "email": email}}
+    )
+    return jsonify({"message": f"Staff '{name}' updated successfully."})
+
+
+@app.route("/admin/delete_staff", methods=["POST"])
+@admin_required
+def delete_staff():
+    data = request.get_json()
+    staff_id = data.get("id")
+    if not staff_id:
+        return jsonify({"error": "Staff ID is required."}), 400
+    staff_collection.delete_one({"_id": ObjectId(staff_id)})
+    return jsonify({"message": "Staff deleted successfully."})
+
+
+# --- LAB MANAGEMENT ---
+
+@app.route("/admin/add_lab", methods=["POST"])
+@admin_required
+def add_lab():
+    data = request.get_json()
+    lab_rfid = data.get("lab_rfid", "").strip()
+    lab_name = data.get("lab_name", "").strip()
+
+    if not lab_rfid or not lab_name:
+        return jsonify({"error": "All fields are required."}), 400
+
+    if lab_collection.find_one({"lab_rfid": lab_rfid}):
+        return jsonify({"error": "Lab RFID already exists."}), 400
+
+    lab_collection.insert_one({"lab_rfid": lab_rfid, "lab_name": lab_name})
+    return jsonify({"message": f"Lab '{lab_name}' added successfully."})
+
+
+@app.route("/admin/edit_lab", methods=["POST"])
+@admin_required
+def edit_lab():
+    data = request.get_json()
+    lab_id = data.get("id")
+    lab_rfid = data.get("lab_rfid", "").strip()
+    lab_name = data.get("lab_name", "").strip()
+
+    if not lab_id or not lab_rfid or not lab_name:
+        return jsonify({"error": "All fields are required."}), 400
+
+    lab_collection.update_one(
+        {"_id": ObjectId(lab_id)},
+        {"$set": {"lab_rfid": lab_rfid, "lab_name": lab_name}}
+    )
+    return jsonify({"message": f"Lab '{lab_name}' updated successfully."})
+
+
+@app.route("/admin/delete_lab", methods=["POST"])
+@admin_required
+def delete_lab():
+    data = request.get_json()
+    lab_id = data.get("id")
+    if not lab_id:
+        return jsonify({"error": "Lab ID is required."}), 400
+    lab_collection.delete_one({"_id": ObjectId(lab_id)})
+    return jsonify({"message": "Lab deleted successfully."})
+
+
+# --- SECURITY MANAGEMENT ---
+
+@app.route("/admin/add_security", methods=["POST"])
+@admin_required
+def add_security():
+    data = request.get_json()
+    security_rfid = data.get("security_rfid", "").strip()
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip()
+
+    if not security_rfid or not name or not email:
+        return jsonify({"error": "All fields are required."}), 400
+
+    if security_collection.find_one({"security_rfid": security_rfid}):
+        return jsonify({"error": "Security RFID already exists."}), 400
+
+    security_collection.insert_one({"security_rfid": security_rfid, "name": name, "email": email})
+    return jsonify({"message": f"Security '{name}' added successfully."})
+
+
+@app.route("/admin/edit_security", methods=["POST"])
+@admin_required
+def edit_security():
+    data = request.get_json()
+    sec_id = data.get("id")
+    security_rfid = data.get("security_rfid", "").strip()
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip()
+
+    if not sec_id or not security_rfid or not name or not email:
+        return jsonify({"error": "All fields are required."}), 400
+
+    security_collection.update_one(
+        {"_id": ObjectId(sec_id)},
+        {"$set": {"security_rfid": security_rfid, "name": name, "email": email}}
+    )
+    return jsonify({"message": f"Security '{name}' updated successfully."})
+
+
+@app.route("/admin/delete_security", methods=["POST"])
+@admin_required
+def delete_security():
+    data = request.get_json()
+    sec_id = data.get("id")
+    if not sec_id:
+        return jsonify({"error": "Security ID is required."}), 400
+    security_collection.delete_one({"_id": ObjectId(sec_id)})
+    return jsonify({"message": "Security deleted successfully."})
+
+
+# --- SETTINGS MANAGEMENT ---
+
+@app.route("/admin/get_settings", methods=["GET"])
+@admin_required
+def get_settings():
+    settings = settings_collection.find_one({"key": "time_limits"})
+    if settings:
+        return jsonify({
+            "time_limit_1": settings.get("time_limit_1", DEFAULT_TIME_LIMIT_1),
+            "time_limit_2": settings.get("time_limit_2", DEFAULT_TIME_LIMIT_2),
+            "time_limit_3": settings.get("time_limit_3", DEFAULT_TIME_LIMIT_3)
+        })
+    return jsonify({
+        "time_limit_1": DEFAULT_TIME_LIMIT_1,
+        "time_limit_2": DEFAULT_TIME_LIMIT_2,
+        "time_limit_3": DEFAULT_TIME_LIMIT_3
+    })
+
+
+@app.route("/admin/update_settings", methods=["POST"])
+@admin_required
+def update_settings():
+    data = request.get_json()
+
+    try:
+        t1 = int(data.get("time_limit_1", DEFAULT_TIME_LIMIT_1))
+        t2 = int(data.get("time_limit_2", DEFAULT_TIME_LIMIT_2))
+        t3 = int(data.get("time_limit_3", DEFAULT_TIME_LIMIT_3))
+    except (ValueError, TypeError):
+        return jsonify({"error": "All time values must be valid numbers (in seconds)."}), 400
+
+    if t1 <= 0 or t2 <= 0 or t3 <= 0:
+        return jsonify({"error": "All time values must be positive."}), 400
+
+    if not (t1 < t2 < t3):
+        return jsonify({"error": "Time limits must be in ascending order (Alert 1 < Alert 2 < Alert 3)."}), 400
+
+    settings_collection.update_one(
+        {"key": "time_limits"},
+        {"$set": {
+            "time_limit_1": t1,
+            "time_limit_2": t2,
+            "time_limit_3": t3
+        }},
+        upsert=True
+    )
+    # Format seconds to HH:MM for the success message
+    def fmt(s):
+        return f"{s // 3600:02d}:{(s % 3600) // 60:02d}"
+    return jsonify({"message": f"Time limits updated: {fmt(t1)} → {fmt(t2)} → {fmt(t3)}"})
 
         except Exception as e:
             logger.error(f"Unexpected error in home route for user {current_user.username}: {e}")
@@ -1238,4 +1457,5 @@ def test_admin():
     }
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")
