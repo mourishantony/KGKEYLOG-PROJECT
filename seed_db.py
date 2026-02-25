@@ -1,9 +1,16 @@
 from pymongo import MongoClient
+from werkzeug.security import generate_password_hash
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
-# Database for Users
-client = MongoClient("mongodb://localhost:27017/")
-db = client["user_database"]
+# Database Connection (supports both local and Atlas)
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+DB_NAME = os.getenv("MONGO_DB_NAME", "user_database")
+
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
 
 users_collection = db["users"]
 staff_collection = db["staff"]
@@ -12,10 +19,16 @@ temp_logs = db["temp_logs"]
 permanent_logs = db["permanent_logs"]
 security_collection = db["security"]
 
-# Insert sample users
+# Clear existing data before seeding
+users_collection.delete_many({})
+staff_collection.delete_many({})
+lab_collection.delete_many({})
+security_collection.delete_many({})
+
+# Insert sample users (with hashed passwords and roles)
 users_collection.insert_many([
-    {"username": "admin", "password": "123"},
-    {"username": "user1", "password": "pass123"}
+    {"username": "admin", "password": generate_password_hash("123"), "role": "admin"},
+    {"username": "user1", "password": generate_password_hash("pass123"), "role": "user"}
 ])
 
 # Insert sample staff RFIDs with emails

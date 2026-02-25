@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: kg-keylog
+    runtime: docker
+    plan: free
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        sync: false
+      - key: EMAIL_SENDER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: WATCHMAN_EMAIL
+        sync: false
+      - key: CHIEF_AUTHORITY_EMAIL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PORT
+        value: 5000

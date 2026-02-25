@@ -1,21 +1,22 @@
 from pymongo import MongoClient
+from dotenv import load_dotenv
+import os
 
-# Connect to MongoDB
-client = MongoClient("mongodb://localhost:27017/")
+load_dotenv()
 
-# Select the database and collection
-db2 = client["key_log_database"]
-staff_collection = db2["staff"]
+# Database Connection (supports both local and Atlas)
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+DB_NAME = os.getenv("MONGO_DB_NAME", "user_database")
 
-db1 = client["user_database"]
-db2 = client["key_log_database"]
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
 
-users_collection = db1["users"]
-staff_collection = db2["staff"]
-lab_collection = db2["labs"]
-temp_logs = db2["temp_logs"]
-permanent_logs = db2["permanent_logs"]
-security_collection = db2["security"]
+users_collection = db["users"]
+staff_collection = db["staff"]
+lab_collection = db["labs"]
+temp_logs = db["temp_logs"]
+permanent_logs = db["permanent_logs"]
+security_collection = db["security"]
 
 # Delete all staff records
 staff_collection.delete_many({})

@@ -37,6 +37,9 @@
 
         <p class="message">{{ message }}</p>
         <button id="database-button" onclick="window.location.href='/database'">Go to Database</button>
+        {% if is_admin %}
+        <button id="admin-button" onclick="window.location.href='/admin'" style="margin-top:10px; background: linear-gradient(to right, #f7971e, #ffd200); color: #333;">Admin Panel</button>
+        {% endif %}
     </div>
 
     <div class="footer">
