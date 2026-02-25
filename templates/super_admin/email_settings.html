@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Settings - Super Admin</title>
+    <style>
+        /* ========== GLOBAL STYLES ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* ========== HEADER STYLES ========== */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 3px solid #06beb6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #06beb6;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: #bdc3c7;
+            font-weight: 300;
+        }
+        
+        /* ========== MANAGEMENT CONTAINER ========== */
+        .management-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* ========== NAVIGATION ========== */
+        .back-nav {
+            margin-bottom: 25px;
+        }
+        
+        .back-nav a {
+            color: #06beb6;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-nav a:hover {
+            color: #4ecdc4;
+            transform: translateX(-5px);
+        }
+        
+        /* ========== FLASH MESSAGES ========== */
+        .flash-message {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        
+        .flash-message.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border-left-color: #27ae60;
+        }
+        
+        .flash-message.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-left-color: #c0392b;
+        }
+        
+        /* ========== FORM SECTIONS ========== */
+        .form-section, .list-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-section h2, .list-section h2 {
+            color: #06beb6;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-section h3, .list-section h3 {
+            color: #4ecdc4;
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin: 25px 0 15px 0;
+            border-bottom: 2px solid rgba(6, 190, 182, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        /* ========== FORM STYLES ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .form-grid-full {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .form-grid input, .form-grid select, .form-grid textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-grid-full input, .form-grid-full textarea, .form-grid-full select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus,
+        .form-grid-full input:focus, .form-grid-full textarea:focus, .form-grid-full select:focus {
+            outline: none;
+            border-color: #06beb6;
+            box-shadow: 0 0 15px rgba(6, 190, 182, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .form-grid input::placeholder, .form-grid textarea::placeholder,
+        .form-grid-full input::placeholder, .form-grid-full textarea::placeholder {
+            color: #bdc3c7;
+        }
+        
+        /* ========== LEVEL SECTIONS ========== */
+        .level-section {
+            background: rgba(52, 73, 94, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        
+        .level-1 {
+            border-left-color: #f39c12;
+        }
+        
+        .level-2 {
+            border-left-color: #e67e22;
+        }
+        
+        .level-3 {
+            border-left-color: #e74c3c;
+        }
+        
+        /* ========== RECIPIENT SELECTOR ========== */
+        .recipient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .recipient-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(44, 62, 80, 0.5);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .recipient-item:hover {
+            background: rgba(6, 190, 182, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .recipient-item input[type="checkbox"] {
+            width: auto;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .recipient-item label {
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .recipient-role {
+            font-size: 0.75rem;
+            color: #bdc3c7;
+        }
+        
+        /* ========== BUTTON STYLES ========== */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(6, 190, 182, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+        }
+        
+        /* ========== CURRENT SETTINGS DISPLAY ========== */
+        .current-settings {
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .setting-value {
+            color: #ecf0f1;
+        }
+        
+        /* ========== FOOTER ========== */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: 50px;
+            border-top: 3px solid #06beb6;
+            color: #bdc3c7;
+            font-size: 0.95rem;
+        }
+        
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 768px) {
+            .management-container {
+                padding: 20px 15px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .recipient-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-section, .list-section {
+                padding: 20px;
+            }
+        }
+        
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-section, .list-section, .current-settings, .level-section {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📧 Email Escalation Settings</h1>
+        <p>Super Admin Panel - Configure Notification System & Escalation Templates</p>
+    </div>
+
+    <div class="management-container">
+        <div class="back-nav">
+            <a href="{{ url_for('super_admin_dashboard') }}">← Back to Dashboard</a>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Current Settings Display -->
+        {% if current_settings %}
+        <div class="current-settings">
+            <h3 style="color: #3498db; margin-bottom: 15px;">📊 Current Email Settings</h3>
+            <div class="setting-item">
+                <span class="setting-label">Level 1 Delay (Security Alert):</span>
+                <span class="setting-value">{{ current_settings.time_limit_1 or 15 }} minutes</span>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Level 2 Delay (HOD + Staff Alert):</span>
+                <span class="setting-value">{{ current_settings.time_limit_2 or 30 }} minutes</span>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Level 3 Delay (Higher Authority):</span>
+                <span class="setting-value">{{ current_settings.time_limit_3 or 60 }} minutes</span>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Last Updated:</span>
+                <span class="setting-value">
+                    {% if current_settings.updated_at %}
+                        {{ current_settings.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                        Never
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Email Settings Configuration -->
+        <div class="form-section">
+            <h2>⚙️ Configure Email Escalation System</h2>
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <!-- Time Limits -->
+                <h3>⏰ Escalation Time Limits</h3>
+                <div class="form-grid">
+                    <input type="number" 
+                           name="time_limit_1" 
+                           placeholder="Level 1 (minutes)" 
+                           value="{{ current_settings.time_limit_1 if current_settings else 15 }}" 
+                           min="1" max="120" required>
+                    <input type="number" 
+                           name="time_limit_2" 
+                           placeholder="Level 2 (minutes)" 
+                           value="{{ current_settings.time_limit_2 if current_settings else 30 }}" 
+                           min="1" max="120" required>
+                    <input type="number" 
+                           name="time_limit_3" 
+                           placeholder="Level 3 (minutes)" 
+                           value="{{ current_settings.time_limit_3 if current_settings else 60 }}" 
+                           min="1" max="180" required>
+                </div>
+
+                <!-- Level 1 - Security Alert -->
+                <div class="level-section level-1">
+                    <h3>🟡 Level 1 - Security Alert</h3>
+                    <p style="color: #bdc3c7; margin-bottom: 15px;">
+                        First notification sent to security personnel when key is not returned on time.
+                    </p>
+                    
+                    <h4 style="color: #f39c12; margin: 15px 0 10px 0;">Recipients:</h4>
+                    <div class="recipient-grid">
+                        {% for user in all_users %}
+                            {% if user.role == 'security' or user.role == 'head_security' %}
+                            <div class="recipient-item">
+                                <input type="checkbox" 
+                                       name="level_1_recipients" 
+                                       value="{{ user.email }}" 
+                                       id="l1_{{ user.username }}"
+                                       {% if current_settings and current_settings.escalation_levels.level_1.recipients and user.email in current_settings.escalation_levels.level_1.recipients %}checked{% endif %}>
+                                <label for="l1_{{ user.username }}">
+                                    <span>{{ user.username }}</span>
+                                    <span class="recipient-role">{{ user.role.replace('_', ' ').title() }}</span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 style="color: #f39c12; margin: 15px 0 10px 0;">Message Template:</h4>
+                    <textarea name="level_1_template" 
+                              rows="3" 
+                              style="width: 100%; margin-top: 10px;"
+                              placeholder="Level 1 email template...">{{ current_settings.escalation_levels.level_1.message_template if current_settings and current_settings.escalation_levels else '🔔 LEVEL 1 ALERT: {staff_name} has not returned the key for {lab_name}. Key taken at: {taken_time}' }}</textarea>
+                </div>
+
+                <!-- Level 2 - HOD + Staff Alert -->
+                <div class="level-section level-2">
+                    <h3>🟠 Level 2 - Department HOD + Staff Alert</h3>
+                    <p style="color: #bdc3c7; margin-bottom: 15px;">
+                        Escalation to department HODs and direct notification to staff member.
+                    </p>
+                    
+                    <h4 style="color: #e67e22; margin: 15px 0 10px 0;">Recipients:</h4>
+                    <div class="recipient-grid">
+                        {% for user in all_users %}
+                            {% if user.role == 'hod' or user.role == 'head_security' %}
+                            <div class="recipient-item">
+                                <input type="checkbox" 
+                                       name="level_2_recipients" 
+                                       value="{{ user.email }}" 
+                                       id="l2_{{ user.username }}"
+                                       {% if current_settings and current_settings.escalation_levels.level_2.recipients and user.email in current_settings.escalation_levels.level_2.recipients %}checked{% endif %}>
+                                <label for="l2_{{ user.username }}">
+                                    <span>{{ user.username }}</span>
+                                    <span class="recipient-role">{{ user.role.replace('_', ' ').title() }}</span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 style="color: #e67e22; margin: 15px 0 10px 0;">Message Template:</h4>
+                    <textarea name="level_2_template" 
+                              rows="3" 
+                              style="width: 100%; margin-top: 10px;"
+                              placeholder="Level 2 email template...">{{ current_settings.escalation_levels.level_2.message_template if current_settings and current_settings.escalation_levels else '🔔 LEVEL 2 ALERT: {staff_name}, please return the key for {lab_name} immediately. Key taken at: {taken_time}. This is an urgent reminder.' }}</textarea>
+                </div>
+
+                <!-- Level 3 - Higher Authority -->
+                <div class="level-section level-3">
+                    <h3>🔴 Level 3 - Higher Authority Escalation</h3>
+                    <p style="color: #bdc3c7; margin-bottom: 15px;">
+                        Critical escalation to Deans, Principal, and Administrative Officers.
+                    </p>
+                    
+                    <h4 style="color: #e74c3c; margin: 15px 0 10px 0;">Recipients:</h4>
+                    <div class="recipient-grid">
+                        {% for user in all_users %}
+                            {% if user.role in ['dean', 'principal', 'admin_officer'] %}
+                            <div class="recipient-item">
+                                <input type="checkbox" 
+                                       name="level_3_recipients" 
+                                       value="{{ user.email }}" 
+                                       id="l3_{{ user.username }}"
+                                       {% if current_settings and current_settings.escalation_levels.level_3.recipients and user.email in current_settings.escalation_levels.level_3.recipients %}checked{% endif %}>
+                                <label for="l3_{{ user.username }}">
+                                    <span>{{ user.username }}</span>
+                                    <span class="recipient-role">{{ user.role.replace('_', ' ').title() }}</span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <h4 style="color: #e74c3c; margin: 15px 0 10px 0;">Message Template:</h4>
+                    <textarea name="level_3_template" 
+                              rows="3" 
+                              style="width: 100%; margin-top: 10px;"
+                              placeholder="Level 3 email template...">{{ current_settings.escalation_levels.level_3.message_template if current_settings and current_settings.escalation_levels else '🚨 CRITICAL ESCALATION: {staff_name} has still not returned the key for {lab_name}. Key taken at: {taken_time}. Immediate action required!' }}</textarea>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <button type="submit" class="btn btn-primary">💾 Save Email Settings</button>
+                </div>
+            </form>
+        </div>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-secondary">🏠 Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 Lab Key Management System | Email Settings | KG Institute of Technology
+    </div>
+</body>
+</html>

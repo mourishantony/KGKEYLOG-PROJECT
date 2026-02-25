@@ -12,6 +12,7 @@ DB_NAME = os.getenv("MONGO_DB_NAME", "user_database")
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 
+# Collections
 users_collection = db["users"]
 staff_collection = db["staff"]
 lab_collection = db["labs"]
@@ -50,4 +51,5 @@ security_collection.insert_many([
     {"security_rfid": "302", "name": "Michael", "email": "security2@kgkite.ac.in"}
 ])
 
-print("Database seeded successfully!")
+if __name__ == "__main__":
+    seed_admins_only()

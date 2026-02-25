@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Departments - Super Admin</title>
+    <style>
+        /* ========== GLOBAL STYLES ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* ========== HEADER STYLES ========== */
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 3px solid #06beb6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #06beb6;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 1rem;
+            color: #bdc3c7;
+            font-weight: 300;
+        }
+        
+        /* ========== MANAGEMENT CONTAINER ========== */
+        .management-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* ========== NAVIGATION ========== */
+        .back-nav {
+            margin-bottom: 25px;
+        }
+        
+        .back-nav a {
+            color: #06beb6;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-nav a:hover {
+            color: #4ecdc4;
+            transform: translateX(-5px);
+        }
+        
+        /* ========== FLASH MESSAGES ========== */
+        .flash-message {
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        
+        .flash-message.success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border-left-color: #27ae60;
+        }
+        
+        .flash-message.danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-left-color: #c0392b;
+        }
+        
+        /* ========== FORM SECTIONS ========== */
+        .form-section, .list-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-section h2, .list-section h2 {
+            color: #06beb6;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ========== FORM STYLES ========== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .form-grid-full {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .form-grid input, .form-grid select, .form-grid textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-grid-full input, .form-grid-full textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(6, 190, 182, 0.3);
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus,
+        .form-grid-full input:focus, .form-grid-full textarea:focus {
+            outline: none;
+            border-color: #06beb6;
+            box-shadow: 0 0 15px rgba(6, 190, 182, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .form-grid input::placeholder, .form-grid textarea::placeholder,
+        .form-grid-full input::placeholder, .form-grid-full textarea::placeholder {
+            color: #bdc3c7;
+        }
+        
+        /* ========== BUTTON STYLES ========== */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(6, 190, 182, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+        }
+        
+        /* ========== TABLE STYLES ========== */
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(6, 190, 182, 0.2);
+            color: white;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #06beb6 0%, #4ecdc4 100%);
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        tr:hover {
+            background: rgba(6, 190, 182, 0.1);
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+        
+        /* ========== DEPARTMENT BADGE ========== */
+        .dept-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(155, 89, 182, 0.3);
+        }
+        
+        /* ========== INFO CARD ========== */
+        .info-card {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #2980b9;
+        }
+        
+        .info-card h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .info-card p {
+            color: #ecf0f1;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        /* ========== FOOTER ========== */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            text-align: center;
+            padding: 25px 20px;
+            margin-top: 50px;
+            border-top: 3px solid #06beb6;
+            color: #bdc3c7;
+            font-size: 0.95rem;
+        }
+        
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 768px) {
+            .management-container {
+                padding: 20px 15px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-section, .list-section {
+                padding: 20px;
+            }
+        }
+        
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-section, .list-section, .info-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏢 Department Management</h1>
+        <p>Super Admin Panel - Configure Departments & HOD Assignments</p>
+    </div>
+
+    <div class="management-container">
+        <div class="back-nav">
+            <a href="{{ url_for('super_admin_dashboard') }}">← Back to Dashboard</a>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Information Card -->
+        <div class="info-card">
+            <h3>📋 Department Management Information</h3>
+            <p>
+                Departments are used to organize laboratories and assign HODs (Head of Departments) for targeted email notifications. 
+                When a lab key is not returned on time, the respective HOD will receive escalation emails based on the department assignment.
+            </p>
+        </div>
+
+        <!-- Add Department Form -->
+        <div class="form-section">
+            <h2>➕ Add New Department</h2>
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-grid">
+                    <input type="text" name="dept_id" placeholder="Department ID (e.g., CSE, ECE) *" required maxlength="10">
+                    <input type="text" name="dept_name" placeholder="Department Name *" required>
+                </div>
+                
+                <div class="form-grid">
+                    <input type="email" name="hod_email" placeholder="HOD Email Address *" required>
+                    <input type="text" name="description" placeholder="Department Description">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">✅ Add Department</button>
+            </form>
+        </div>
+
+        <!-- Departments List -->
+        <div class="list-section">
+            <h2>🏢 Current Departments ({{ dept_list|length }})</h2>
+            
+            {% if dept_list %}
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Department ID</th>
+                                <th>Department Name</th>
+                                <th>HOD Email</th>
+                                <th>Description</th>
+                                <th>Created</th>
+                                <th>Created By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in dept_list %}
+                                <tr>
+                                    <td>
+                                        <span class="dept-badge">{{ dept.dept_id }}</span>
+                                    </td>
+                                    <td><strong>{{ dept.dept_name }}</strong></td>
+                                    <td>
+                                        <a href="mailto:{{ dept.hod_email }}" style="color: #06beb6; text-decoration: none;">
+                                            {{ dept.hod_email }}
+                                        </a>
+                                    </td>
+                                    <td style="max-width: 200px;">{{ dept.description or 'N/A' }}</td>
+                                    <td>
+                                        {% if dept.created_at %}
+                                            {{ dept.created_at.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ dept.created_by or 'System' }}</td>
+                                    <td>
+                                        <form method="post" style="display: inline;" 
+                                              onsubmit="return confirm('Are you sure you want to delete department {{ dept.dept_name }}? This will affect lab assignments and email notifications.')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="dept_id" value="{{ dept.dept_id }}">
+                                            <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 60px 20px; color: #bdc3c7;">
+                    <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;">🏢</div>
+                    <p>No departments found. Add the first department using the form above.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-secondary">🏠 Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 Lab Key Management System | Department Management | KG Institute of Technology
+    </div>
+</body>
+</html>

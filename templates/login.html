@@ -1,43 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>KG Keylog - Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Login - Lab Key Management System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-    
 </head>
 <body>
-
-    <!-- Header with Logo -->
     <div class="header">
-        <img src="{{ url_for('static', filename='KGLOGO.jpg') }}" alt="KGiSL Logo" class="logo">
-        <div class="header-text">
-            <h1>KGiSL Institute of Technology</h1>
-            <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
-        </div>
+        <h1>🏫 KG Institute of Technology</h1>
+        <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
     </div>
 
-    <!-- Title -->
-    <div class="title">
-        KG Keylog
-    </div>
-
-    <!-- Login Box -->
     <div class="container">
-        <h2>Login</h2>
-        <form method="post">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        {% with messages = get_flashed_messages() %}
+        <h2>🔑 Lab Key Management System</h2>
+        
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <p class="message">{{ messages[0] }}</p>
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
             {% endif %}
         {% endwith %}
-    </div>
-    <div class="footer">
-        © 2025 IPS Tech Community. All Rights Reserved.
+
+        <form method="post">
+            <!-- CSRF Token -->
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <input type="text" 
+                   name="username" 
+                   placeholder="Username" 
+                   required 
+                   autocomplete="username"
+                   maxlength="50">
+            
+            <input type="password" 
+                   name="password" 
+                   placeholder="Password" 
+                   required 
+                   autocomplete="current-password"
+                   maxlength="100">
+            
+            <div style="text-align: left; margin: 10px 0;">
+                <input type="checkbox" 
+                       id="remember" 
+                       name="remember" 
+                       style="width: auto; display: inline-block; margin-right: 8px;">
+                <label for="remember" style="color: white; font-size: 14px;">
+                    Remember me for 24 hours
+                </label>
+            </div>
+            
+            <button type="submit">🔐 Login</button>
+        </form>
     </div>
 
+    <div class="footer">
+        © 2024 Lab Key Management System | Developed for KG Institute of Technology
+    </div>
+
+    <!-- Session timeout warning script -->
+    <script>
+        // Enhanced session timeout with warning
+        let sessionTimeout = 30 * 60 * 1000; // 30 minutes
+        let warningTime = 5 * 60 * 1000; // 5 minutes warning
+
+        setTimeout(function() {
+            if (confirm("Your session will expire in 5 minutes. Do you want to stay logged in?")) {
+                // Ping server to extend session
+                fetch('/home', {method: 'GET'}).then(() => {
+                    console.log('Session extended');
+                });
+            }
+        }, sessionTimeout - warningTime);
+
+        setTimeout(function() {
+            alert("Session expired. You will be logged out.");
+            window.location.href = "/logout";
+        }, sessionTimeout);
+    </script>
 </body>
 </html>

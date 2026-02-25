@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Labs - Super Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <style>
+        .management-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .form-section, .list-section {
+            background: #2c3e50;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid #06beb6;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .form-grid input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #06beb6;
+            background: #34495e;
+            color: white;
+            border-radius: 4px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #34495e;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #06beb6;
+            color: white;
+        }
+        
+        th {
+            background: #06beb6;
+            color: #2c3e50;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary { background: #06beb6; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-secondary { background: #95a5a6; color: white; }
+        
+        .back-nav {
+            margin-bottom: 20px;
+        }
+        
+        .back-nav a {
+            color: #06beb6;
+            text-decoration: none;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏛️ Laboratory Management</h1>
+        <p>Super Admin Panel - Add, Edit, Delete Lab RFID</p>
+    </div>
+
+    <div class="management-container">
+        <div class="back-nav">
+            <a href="{{ url_for('super_admin_dashboard') }}">← Back to Dashboard</a>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Add Lab Form -->
+        <div class="form-section">
+            <h2 style="color: #06beb6;">➕ Add New Laboratory</h2>
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-grid">
+                    <input type="text" name="lab_rfid" placeholder="Lab RFID *" required>
+                    <input type="text" name="lab_name" placeholder="Lab Name *" required>
+                    <input type="text" name="location" placeholder="Location/Building" required>
+                    <input type="text" name="capacity" placeholder="Capacity/Room Type" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">✅ Add Laboratory</button>
+            </form>
+        </div>
+
+        <!-- Labs List -->
+        <div class="list-section">
+            <h2 style="color: #06beb6;">🏛️ Current Laboratories ({{ lab_list|length }})</h2>
+            
+            {% if lab_list %}
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>RFID</th>
+                                <th>Lab Name</th>
+                                <th>Location</th>
+                                <th>Capacity/Type</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lab in lab_list %}
+                                <tr>
+                                    <td><code>{{ lab.lab_rfid }}</code></td>
+                                    <td>{{ lab.lab_name }}</td>
+                                    <td>{{ lab.location or 'N/A' }}</td>
+                                    <td>{{ lab.capacity or 'N/A' }}</td>
+                                    <td>{{ lab.created_at.strftime('%Y-%m-%d') if lab.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <form method="post" style="display: inline;" 
+                                              onsubmit="return confirm('Are you sure you want to delete {{ lab.lab_name }}?')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="lab_rfid" value="{{ lab.lab_rfid }}">
+                                            <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p style="color: #bdc3c7; text-align: center; padding: 40px;">
+                    🏛️ No laboratories found. Add the first one using the form above.
+                </p>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ url_for('super_admin_dashboard') }}" class="btn btn-secondary">🏠 Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2024 Lab Key Management System | Laboratory Management
+    </div>
+</body>
+</html>

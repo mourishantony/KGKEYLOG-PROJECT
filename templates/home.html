@@ -15,7 +15,16 @@
             <h1>KGiSL Institute of Technology</h1>
             <p>An Autonomous Institution | Saravanampatti, Coimbatore, Tamil Nadu</p>
         </div>
-        <a class="lg-out" href="{{ url_for('login') }}">Logout</a>
+        <a href="{{ url_for('logout') }}" class="lg-out">
+        👤 {{ user.username }} | Logout
+        </a>
+        <!-- Add this to your navigation section -->
+        {% if user.is_super_admin() %}
+            <a href="{{ url_for('super_admin_dashboard') }}" class="super-admin-link">
+                👑 Super Admin Panel
+            </a>
+        {% endif %}
+
     </div>
 
     <div class="container">
@@ -47,6 +56,31 @@
     </div>
 
     <script>
+
+        // Function to fetch staff name based on RFID input
+        fetch('/home', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(rfidData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Handle success
+                document.getElementById('message').innerHTML = data.message;
+                document.getElementById('message').style.color = '#00ff00';
+            } else {
+                // Handle error
+                document.getElementById('message').innerHTML = data.message;
+                document.getElementById('message').style.color = '#ff4444';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('message').innerHTML = '⚠️ Network error occurred!';
+        });
+
+
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("rfid-form");
             const staffInput = document.getElementById("staff");
@@ -136,7 +170,48 @@
                 }
             });
         });
-    </script>
-    
+        
+        // CSRF token for AJAX requests
+        function getCSRFToken() {
+            return document.querySelector('meta[name=csrf-token]').getAttribute('content');
+        }
+
+        // Enhanced AJAX with CSRF protection
+        function submitRFIDData(formData) {
+            fetch('/home', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle response
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Session management
+        let lastActivity = Date.now();
+        let sessionTimeout = 30 * 60 * 1000; // 30 minutes
+
+        // Update last activity on user interaction
+        document.addEventListener('click', () => lastActivity = Date.now());
+        document.addEventListener('keypress', () => lastActivity = Date.now());
+
+        // Check session timeout
+        setInterval(function() {
+            if (Date.now() - lastActivity > sessionTimeout) {
+                alert("Session expired due to inactivity. You will be logged out.");
+                window.location.href = "/logout";
+            }
+        }, 60000); // Check every minute
+</script>
+
 </body>
 </html>
